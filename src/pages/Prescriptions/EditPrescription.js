@@ -7,7 +7,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-
+import { drfUpdatePrescriptions } from "../../drfServer";
 class EditPrescription extends Component {
     constructor(props) {
         super(props);
@@ -93,14 +93,13 @@ class EditPrescription extends Component {
           prescription_id,
           client_id,
         };
+
+        const headersPart = {
+            headers: {'Content-Type': 'application/json','Authorization': `Bearer ${access_token}`},
+          }
     
         try {
-          const response = await axios.put(`/Prescription/Updated/`, formData, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${access_token}`,
-            },
-          });
+          const response = await drfUpdatePrescriptions(formData,headersPart);
     
           if (response.data.message) {
             toast.success(`${response.data.message}`,{autoClose:1000});

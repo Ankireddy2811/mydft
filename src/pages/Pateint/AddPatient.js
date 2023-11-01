@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styli
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Breadcrumbs from '../../components/Common/Breadcrumb';
+import { drfAddPatient } from "../../drfServer";
 
 class AddPatient extends Component {
     constructor(props) {
@@ -78,24 +79,28 @@ class AddPatient extends Component {
             access_token,
         } = this.state;
 
+        const formData = {
+            first_name,
+            last_name,
+            email,
+            contact_number,
+            age,
+            date_of_birth,
+            gender,
+            address,
+            medical_history,
+            client,
+        }
+
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${access_token}`,
+            }
+        }
+
         try {
-            const response = await axios.post("/Patient/register/", {
-                first_name,
-                last_name,
-                email,
-                contact_number,
-                age,
-                date_of_birth,
-                gender,
-                address,
-                medical_history,
-                client,
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer ${access_token}`,
-                }
-            });
+            const response = await drfAddPatient(formData,headersPart);
 
             const data = response.data;
 

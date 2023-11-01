@@ -6,7 +6,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-
+import { drfUpdateLabTest } from "../../drfServer";
 class EditLabTest extends Component {
     constructor(props) {
         super(props);
@@ -38,7 +38,7 @@ class EditLabTest extends Component {
           
 
         try {
-            const response = await fetch(`/LabTest/details-By/`,{
+            const response = await fetch(`https://www.iyrajewels.com/LabTest/details-By/`,{
                 method:"POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -89,9 +89,8 @@ class EditLabTest extends Component {
           client_id,
           access_token,
         } = this.state;
-      
-        try {
-          const response = await axios.put(`/LabTest/Updated/`, {
+
+        const formData = {
             patient,
             doctor,
             test_name,
@@ -99,12 +98,17 @@ class EditLabTest extends Component {
             results,
             lab_test_id,
             client_id,
-          }, {
+          }
+    
+          const headersPart = {
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${access_token}`,
-            },
-          });
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${access_token}`
+            }
+          }
+          
+        try {
+          const response = await drfUpdateLabTest(formData,headersPart);
       
           const data = response.data;
       

@@ -21,15 +21,15 @@ class Counter2 extends Component {
 
         const apiUrls = [
             {
-                url: "/Nurse/counter/",
+                url: "http://194.163.40.231:8000/Nurse/counter/",
                 body: { client_id: id }
             },
             {
-                url: "/Department/counter/",
+                url: "http://194.163.40.231:8000/Department/counter/",
                 body: { client_id: id }
             },
             {
-                url: "/Bed/counter/",
+                url: "http://194.163.40.231:8000/Bed/counter/",
                 body: { client_id: id }
             }
         ];

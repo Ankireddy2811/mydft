@@ -16,14 +16,16 @@ import spain from "../../../assets/images/flags/spain.jpg";
 import germany from "../../../assets/images/flags/germany.jpg";
 import italy from "../../../assets/images/flags/italy.jpg";
 import russia from "../../../assets/images/flags/russia.jpg";
+import india from "../../../assets/images/flags/india.png";
 
+// const indianFlag = "https://pngfre.com/indian-flag-png/indian-flag-52/";
 class LanguageDropdown extends Component {
   constructor(props) {
     super(props);
     this.state = {
       menu: false,
-      lng: "English",
-      flag: usFlag
+      lng: "India",
+      flag: india
     };
     this.toggle = this.toggle.bind(this);
     this.changeLanguageAction.bind(this);
@@ -44,6 +46,8 @@ class LanguageDropdown extends Component {
       this.setState({ lng: "Spanish", flag: spain });
     else if (lng === "gr")
       this.setState({ lng: "German", flag: germany });
+    else if (lng === "ind")
+      this.setState({ lng: "India", flag: india});
     else if (lng === "rs")
       this.setState({ lng: "Russian", flag: russia });
     else if (lng === "it")
@@ -65,6 +69,10 @@ class LanguageDropdown extends Component {
 
             <DropdownItem active={this.state.lng === "English" ? true : false} href="" onClick={() => this.changeLanguageAction('eng')} className="notify-item">
               <img src={usFlag} alt="user" className="me-1" height="12" /> <span className="align-middle">English</span>
+            </DropdownItem>
+
+            <DropdownItem active={this.state.lng === "India" ? true : false} href="" onClick={() => this.changeLanguageAction('ind')} className="notify-item">
+              <img src={india} alt="user" className="me-1" height="12" /> <span className="align-middle">India</span>
             </DropdownItem>
 
             <DropdownItem href="" active={this.state.lng === "Spanish" ? true : false} onClick={() => this.changeLanguageAction('sp')} className="notify-item">

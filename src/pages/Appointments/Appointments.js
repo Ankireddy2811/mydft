@@ -13,7 +13,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
-
+// import {drfGetAllAppointmentDetails } from "../../drfServer"
 class Appointments extends Component {
     constructor(props) {
         super(props);
@@ -62,7 +62,7 @@ class Appointments extends Component {
                  
                } = this.state;
            
-            const response = await fetch(`/Appointment/All/`, {
+            const response = await fetch(`http://194.163.40.231:8000/Appointment/All/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json", // Set the content type to JSON
@@ -204,6 +204,12 @@ class Appointments extends Component {
 
     render() {
         const { data, loading, error, currentPage, appointmentsPerPage } = this.state;
+        
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["appointment_id"] = j+1;
+            }
+        }
 
         if (loading) {
             return <div>Loading...</div>;
@@ -218,7 +224,7 @@ class Appointments extends Component {
         const currentAppointments = data?.slice(indexOfFirstAppointments, indexOfLastAppointments);
 
         const columns = [
-            { dataField: 'appointment_id', text: 'A.P ID', sort: true },
+            { dataField: 'appointment_id', text: 'SNO', sort: true },
             { dataField: 'patient_id', text: 'Patient ID', sort: true },
             { dataField: 'patient__first_name', text: 'Patient Name', formatter: (cell, row) => `${cell} ${row.patient__last_name}` },
 

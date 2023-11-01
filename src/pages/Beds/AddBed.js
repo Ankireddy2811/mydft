@@ -5,6 +5,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
+import { drfAddBed } from "../../drfServer";
 
 // import { drfAddBed } from '../../drfServer'; 
 
@@ -49,85 +50,25 @@ class AddBed extends Component {
         } = this.state;
         
         console.log("token =>",access_token);
+        const formData = {department,is_occupied,client};
+        const headersPart = {
+          headers :{
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
         try {
            
-
-              const apiUrl = 'https://www.iyrajewels.com/Bed/register/'; 
-              const access_token1 = access_token; 
-              const payload = {department,is_occupied,client};
-              console.log("payload =>",payload);
-             
-              const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${access_token1}`
-              };
-
-              
-
-            const requestOptions = {
-             method: 'POST',
-             headers: headers,
-             body: JSON.stringify(payload)
-            };
-
-           fetch(apiUrl, requestOptions)
-           .then(response => {
-          if (!response.ok) {
-              throw new Error('Network response was not ok');
-           }
-          return response.json();
-          })
-         .then(data => {
-         // Handle the API response data
-         console.log('Response:', data);
-         })
-         .catch(error => {
-         // Handle any errors here
-            console.error('Error:', error);
-        });
-              
-              // Make the POST request
-             /* const options = {
-                method:"POST",
-                headers:{
-                  'Content-Type': 'application/json',
-                   'Authorization': `Bearer ${access_token1}`
-                },
-                body:JSON.stringify(payload)
-              }
-              const response = await fetch(apiUrl,options)
-              console.log(response) */
-
-              /* axios.post(apiUrl, payload, { headers })
-              .then(response => {
-                // Handle the API response here
-                console.log('Response:', response.data);
-              })
-              .catch(error => {
-                // Handle any errors here
-                console.error('Error:', error);
-              }); */
-              
-
-           /* const response = await axios.post("/Bed/register/", {
-            department,
-            is_occupied,
-            client,
-          }, {
-            headers: {
-              "Content-Type": "application/json",
-              'Authorization': `Bearer ${access_token}`,
-            }
-          }); */
-    
-          /* const data = response.data;
-    
-          if (data.message) {
-            toast.success(data.message); // Use toast for success notification
-          } else {
-            throw new Error("Something went wrong");
-          } */
-        } catch (error) {
+            const response = await drfAddBed(formData,headersPart);
+            console.log(response);
+            if (response.data.message) {
+              toast.success(response.data.message); // Use toast for success notification
+            } else {
+              throw new Error("Something went wrong");
+            } 
+         
+        } 
+        catch (error) {
           console.error("Error:", error);
     
           if (error.response && error.response.data && error.response.data.message) {

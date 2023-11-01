@@ -11,6 +11,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ClipLoader } from "react-spinners";
 import { css } from "@emotion/react";
+import {drfAddAppointment,drfGetAppointmentDetails, drfGetDoctorSuggestionsDetails} from "../../drfServer";
 
 const override = css`
   display: block;
@@ -142,14 +143,15 @@ class AddAppointment extends Component {
   // Function to fetch patient suggestions from the API
   async fetchPatientSuggestions() {
     const { client_id } = this.state;
+    const headersPart = {
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${this.state.access_token}`,
+      }
+    }
 
     try {
-      const response = await axios.post(`/Patient/details/`, { client_id }, {
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${this.state.access_token}`,
-        }
-      });
+      const response = await drfGetAppointmentDetails({ client_id }, headersPart);
 
       if (response.status === 200) {
         const data = response.data;
@@ -172,15 +174,16 @@ class AddAppointment extends Component {
   // Replace fetchDoctorSuggestions with Axios
   async fetchDoctorSuggestions() {
     const { client_id } = this.state;
+    const headersPart = {
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${this.state.access_token}`,
+      }
+    }
 
     try {
-      const response = await axios.post(`/Doctor/details/`, { client_id }, {
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${this.state.access_token}`,
-        }
-      });
-
+      const response = await drfGetDoctorSuggestionsDetails({ client_id }, headersPart);
+      
       const data = response.data;
       if (response.status === 200) {
         const doctorSuggestion = data.Data.map((result) => ({
@@ -253,7 +256,7 @@ class AddAppointment extends Component {
     );
   };
 
-  handleSubmit = (e) => {
+  handleSubmit = async(e) => {
     e.preventDefault();
     const { patient, doctor, appointment_date, start_time, end_time, client } = this.state;
     const acces = this.state.access_token;
@@ -272,13 +275,15 @@ class AddAppointment extends Component {
 
     this.setState({ isLoading: true }); // Start loading
 
+    const headersPart =  {
+      headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${acces}`
+    }
+  }
+
     try {
-      const response = axios.post(`/Appointment/book/`, formData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${acces}`
-        }
-      });
+      const response = await drfAddAppointment(formData,headersPart);
 
       const data = response.data;
 

@@ -5,7 +5,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-
+import {drfUpdateInvoice} from "../../drfServer"
 class EditInvoice extends Component {
     constructor(props) {
         super(props);
@@ -86,16 +86,18 @@ class EditInvoice extends Component {
           invoice_id,
           client_id,
         };
+
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${access_token}`,
+            },
+          }
     
         try {
-          const response = await axios.put(`/Invoice/Updated/`, formData, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${access_token}`,
-            },
-          });
-    
-          if (response.data.message) {
+        const response = await drfUpdateInvoice(formData,headersPart)
+         
+        if (response.data.message) {
             toast.success(`${response.data.message}`, {
                 autoClose: 1000, // Duration in milliseconds (e.g., 3000ms = 3 seconds)
               });

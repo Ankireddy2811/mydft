@@ -11,10 +11,13 @@ import PasswordReset from "../pages/Authentication/PasswordReset";
 import ProfilePasswordChange from "../pages/Authentication/ProfilePasswordChange";
 // Dashboard
 import Dashboard from "../pages/Dashboard/index";
+import NotFound from "../NotFound";
 //Doctor
+import ViewDoctorsList from "../pages/Doctor/ViewDoctorsList";
 import AddDoctor from "../pages/Doctor/AddDoctor";
 import Doctors from "../pages/Doctor/Doctors";
 import EditDoctor from "../pages/Doctor/EditDoctor";
+
 //Patient
 import Patients from "../pages/Pateint/Patients";
 import AddPatient from "../pages/Pateint/AddPatient";
@@ -75,6 +78,7 @@ const authProtectedRoutes = [
 	{ path: "/doctors", component: Doctors},
 	{ path: "/add-doctor", component: AddDoctor},
 	{ path:"/edit-doctor/:doctor_id", component:EditDoctor },
+	 {path: "/ViewDoctorsList", component: ViewDoctorsList },
 	//Pateints
 	{ path: "/patients", component: Patients},
 	{ path: "/add-patient", component: AddPatient},
@@ -122,14 +126,24 @@ const authProtectedRoutes = [
 	{path:"/add-lab-test", component:AddLabTest},
 	{path:"/edit-lab-test/:lab_test_id", component: EditLabTest},
     //Payments
+	
 	{path:"/payment-list", component:Payments},
 	{path:"/add-payment", component:AddPayment},
 	{path:"/edit-payment/:payment_id", component: EditPayment},
+	
+    
+    { path: "/hprofile", component: HProfile },
+
+
+
 	{ path: "/dashboard", component: Dashboard },
-    //Profile
-	{ path: "/hprofile", component: HProfile },
+    { path: "/not-found", component: NotFound },
 	// this route should be at the end of all other routes
-	{ path: "/", exact: true, component: () => <Redirect to="/dashboard" /> }
+	 { path: "/", exact: true, component: () => <Redirect to="/dashboard" /> },
+    
+     { path: "*", exact:true,component: () => <Redirect to="/not-found" /> }
+	
+
 ];
 
 const publicRoutes = [

@@ -102,6 +102,13 @@ class EditBed extends Component {
           is_occupied,
           bed_number,
         };
+
+        const headersPart = {
+            headers : {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              }
+        }
     
         try {
             /* const apiUrl = 'https://www.iyrajewels.com/Bed/Updated/'; 
@@ -120,27 +127,27 @@ class EditBed extends Component {
            method: 'PUT',
            headers: headers,
            body: JSON.stringify(formData)
-          };
+          }; */
 
-        const response = await fetch(apiUrl, requestOptions)
+        const response = await drfUpdateBed(formData,headersPart);
         if (response.ok){
             const data = await response.json()
         }
         else{
             throw new Error('Network response was not ok');
-        } */
+        } 
        
            /* const response = await drfUpdateBed(formData,{headers:{
                 "Content-Type": "application/json",
                 'Authorization': `Bearer ${access_token}`,
             }}) */
           
-           const response = await axios.put(`/Bed/Updated/`, formData, {
+           /* const response = await axios.put(`/Bed/Updated/`, formData, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${access_token}`,
             },
-          }); 
+          });  */
     
           if (response.data.message) {
             toast.success(`${response.data.message}`, {

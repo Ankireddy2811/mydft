@@ -7,6 +7,7 @@ import { withRouter } from 'react-router-dom';
 
 //Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
+import {drfUpdateAppointment} from "../../drfServer";
 class EditAppointment extends Component {
   constructor(props) {
     super(props);
@@ -87,13 +88,15 @@ class EditAppointment extends Component {
       end_time,
     };
 
+    const headersPart = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${access_token}`,
+      },
+    }
+
     try {
-      const response = await axios.put(`/Appointment/updateBy/`, formData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${access_token}`,
-        },
-      });
+      const response = await axios.put(formData,headersPart);
 
       const data = response.data;
 

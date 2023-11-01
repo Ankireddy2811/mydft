@@ -12,6 +12,8 @@ import { toast } from 'react-toastify'; // Import toast from react-toastify
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 import Swal from "sweetalert2";
+
+import { drfDeleteInvoice,drfGetInvoiceDetails } from "../../drfServer";
 class Invoices extends Component {
     constructor(props) {
         super(props);
@@ -60,15 +62,15 @@ class Invoices extends Component {
    
     getAllInvoices = async () => {
         const acces = this.state.access_token;
-
-        try {
-          const { client_id,sortOrder} = this.state;
-          const response = await axios.post(`/Invoice/details/`, { client_id }, {
+        const headersPart = {
             headers: {
               "Content-Type": "application/json", // Set the content type to JSON
               'Authorization': `Bearer ${acces}`,
             },
-          });
+          }
+        try {
+          const { client_id,sortOrder} = this.state;
+          const response = await drfGetInvoiceDetails({ client_id },headersPart);
       
      
       
@@ -110,17 +112,19 @@ class Invoices extends Component {
       };
       
       deleteInvoice = async (invoice_id, client_id, access_token) => {
+        const headersPart =  {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${access_token}`,
+            },
+          }
+        
+        const formData = {
+            invoice_id, client_id
+        }
         try {
-          const response = await axios.post(
-            `/Invoice/delete-By/`,
-            { invoice_id, client_id },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access_token}`,
-              },
-            }
-          );
+
+          await drfDeleteInvoice(formData,headersPart);
           await this.getAllInvoices();
 
           
@@ -240,6 +244,12 @@ class Invoices extends Component {
     render() {
         const { data, loading, error, currentPage, invoicesPerPage, searchQuery, sortField, sortDirection } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["invoice_id"] = j+1;
+            }
+        }
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -266,7 +276,7 @@ class Invoices extends Component {
         const currentInvoices = filteredInvoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
 
         const columns = [
-            { dataField: 'invoice_id', text: 'Invoice Id', sort: true, sortCaret: (order) => order === 'asc' ? <>&uarr;</> : <>&darr;</>, onClick: () => this.handleSortChange('invoice_id') },
+            { dataField: 'invoice_id', text: 'SNO', sort: true, sortCaret: (order) => order === 'asc' ? <>&uarr;</> : <>&darr;</>, onClick: () => this.handleSortChange('invoice_id') },
             { dataField: 'patient_id', text: 'Patient ID', sort: true, sortCaret: (order) => order === 'asc' ? <>&uarr;</> : <>&darr;</>, onClick: () => this.handleSortChange('patient_id') },
             { dataField: 'invoice_date', text: 'Invoice Date', sort: true, sortCaret: (order) => order === 'asc' ? <>&uarr;</> : <>&darr;</>, onClick: () => this.handleSortChange('invoice_date') },
             { dataField: 'total_amount', text: 'Total Amount', sort: true, sortCaret: (order) => order === 'asc' ? <>&uarr;</> : <>&darr;</>, onClick: () => this.handleSortChange('total_amount') },

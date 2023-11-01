@@ -9,6 +9,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 //Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 
+import {drfUpdateDoctor} from "../../drfServer"
 class EditDoctor extends Component {
   constructor(props) {
     super(props);
@@ -192,12 +193,14 @@ class EditDoctor extends Component {
     // Use the correct key 'image' here
 
     try {
-      const response = await axios.put(`/Doctor/Updated/`, formData, {
+      const headerPart = {
         headers: {
           'Content-Type': 'multipart/form-data', // Use 'multipart/form-data' for form data
           'Authorization': `Bearer ${access_token}`,
         },
-      });
+        
+      }
+      const response = await drfUpdateDoctor(formData,headerPart);
 
       const data = response.data;
 

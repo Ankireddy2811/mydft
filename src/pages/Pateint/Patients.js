@@ -13,6 +13,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { drfDeletePatient,drfGetPatientDetails } from "../../drfServer";
 class Patients extends Component {
     constructor(props) {
         super(props);
@@ -56,17 +57,15 @@ class Patients extends Component {
     getAllPatients = async () => {
         const { client_id, sortOrder } = this.state;
         const acces = this.state.access_token;
-
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${acces}`,
+            }
+        }
     
         try {
-            const response = await axios.post(`/Patient/details/`,{client_id}, {
-                
-                headers: {
-                    "Content-Type": "application/json", // Set the content type to JSON
-                    'Authorization': `Bearer ${acces}`,
-
-                },
-            });
+            const response = await drfGetPatientDetails({client_id}, headersPart);
             const data =  response.data;
             const sortedData = sortOrder === 'asc'
             ? data.Data.sort((a, b) => a.patient_id - b.patient_id)
@@ -102,20 +101,14 @@ class Patients extends Component {
       };
       
       deletePatient = async (patient_id, client_id, access_token) => {
-        try {
-          const response = await axios.post(
-            '/Patient/deleteBy/',
-            { patient_id, client_id },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access_token}`,
-              },
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${access_token}`,
             }
-          );
-      
-         
-      
+        }
+        try {
+          await drfDeletePatient({ patient_id, client_id },headersPart);
           await this.getAllPatients();
         } catch (error) {
           console.error('Deletion failed:', error);
@@ -210,6 +203,12 @@ class Patients extends Component {
     render() {
         const { data, loading, error, currentPage, patientsPerPage,sortOrder, sortField, sortDirection, searchQuery  } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["patient_id"] = j+1;
+            }
+        }
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -242,7 +241,7 @@ class Patients extends Component {
 
 
         const columns = [
-            { dataField: 'patient_id', text: 'Patient ID', sort: true,sortCaret: (order, column) => {
+            { dataField: 'patient_id', text: 'SNO', sort: true,sortCaret: (order, column) => {
                 return order === this.state.sortOrder ? "↑" : "↓";
             }, },
             { dataField: 'first_name', text: 'Patient Name', formatter: (cell, row) => `${cell} ${row.last_name}`,sort: true,sortCaret: (order, column) => {

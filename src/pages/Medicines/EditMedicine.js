@@ -5,7 +5,8 @@ import { toast } from 'react-toastify'; // Import toast from react-toastify
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
-import Breadcrumbs from '../../components/Common/Breadcrumb';
+import Breadcrumbs from '../../components/Common/Breadcrumb'
+import { drfUpdateMedicine } from "../../drfServer";
 
 class EditMedicine extends Component {
     constructor(props) {
@@ -36,7 +37,7 @@ class EditMedicine extends Component {
           
 
         try {
-            const response = await fetch(`/Medicine/details-By/`,{
+            const response = await fetch(`https://www.iyrajewels.com/Medicine/details-By/`,{
                 method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,14 +94,18 @@ class EditMedicine extends Component {
           medicine_id,
           client_id,
         };
+
+       
+        
+        const headersPart = {
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${access_token}`,
+            }
+          }
     
         try {
-          const response = await axios.put(`/Medicine/Updated/`, formData, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${access_token}`,
-            },
-          });
+          const response = await drfUpdateMedicine(formData,headersPart);
     
           if (response.status === 200) {
             toast.success(response.data.message);

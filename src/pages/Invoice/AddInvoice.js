@@ -5,6 +5,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
+import { drfAddInvoice } from "../../drfServer";
 
 class AddInvoice extends Component {
     constructor(props) {
@@ -47,19 +48,21 @@ class AddInvoice extends Component {
         } = this.state;
       
         try {
-          const response = await axios.post("/Invoice/add/", {
-            patient,
-            invoice_date,
-            total_amount,
-            client,
-          }, {
-            headers: {
-              "Content-Type": "application/json",
-              'Authorization': `Bearer ${access_token}`,
-            }
-          });
-      
-          const data = response.data;
+            const formData = {
+                patient,
+                invoice_date,
+                total_amount,
+                client,
+              }
+            const headersPart = {
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${access_token}`,
+                },
+              }
+              
+            const response = await drfAddInvoice(formData, headersPart);
+            const data = response.data;
       
           if ( data.message) {
             toast.success(data.message);

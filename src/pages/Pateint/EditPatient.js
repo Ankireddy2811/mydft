@@ -9,6 +9,8 @@ import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styli
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+
+import {drfUpdatePatient} from "../../drfServer"
 class EditPatient extends Component {
     constructor(props) {
         super(props);
@@ -45,7 +47,7 @@ class EditPatient extends Component {
 
             // Fetch patient details using the patient_id
             //   const response = await fetch(`http://194.163.40.231:8080/Patient/details-By/`);
-            const response = await fetch(`/Patient/details-By/`, {
+            const response = await fetch(`http://194.163.40.231:8080/Patient/details-By/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -143,13 +145,15 @@ class EditPatient extends Component {
             patient_id,
         };
 
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${access_token}`,
+            }
+        }
+
         try {
-            const response = await axios.put(`/Patient/Updated/`, formData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${access_token}`,
-                },
-            });
+            const response = await drfUpdatePatient(formData, headersPart);
 
             const data = response.data;
 

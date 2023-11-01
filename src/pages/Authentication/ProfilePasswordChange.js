@@ -7,6 +7,7 @@ import { AvForm, AvField } from "availity-reactstrap-validation";
 import { withRouter, Link } from 'react-router-dom';
 import logodark from "../../assets/images/logo-dark.png";
 import logolight from "../../assets/images/logo-light.png";
+import {drfProfilePasswordChange} from "../../drfServer";
 class ProfilePasswordChange extends Component {
     constructor(props) {
         super(props);
@@ -28,21 +29,18 @@ class ProfilePasswordChange extends Component {
     handleValidSubmit = async (e) => {
         e.preventDefault();
         const { old_password, new_password, confirm_password, access_token } = this.state;
-
+        const formData = {
+            old_password,
+            new_password,
+            confirm_password,
+        }
+        const headersPart = {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+        }
         try {
-            const response = await axios.post(
-                `/Hospital/change-password/`,
-                {
-                    old_password,
-                    new_password,
-                    confirm_password,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${access_token}`,
-                    },
-                }
-            );
+            const response = await drfProfilePasswordChange(formData,headersPart);
 
             if (response.data.message) {
                 window.alert(response.data.message);

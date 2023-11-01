@@ -14,7 +14,7 @@ import * as XLSX from 'xlsx';
 import ReactTooltip from 'react-tooltip';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { withRouter } from 'react-router-dom';
-
+import { drfGetHospitalDetails,drfDeleteDoctor, drfDeleteHospital} from "../../drfServer";
 class Hospitals extends Component {
     constructor(props) {
         super(props);
@@ -56,13 +56,16 @@ class Hospitals extends Component {
     };
 
     getAllHospitals = async () => {
+        const acces = this.state.access_token;
+       
+        const options = {
+            headers:{
+                'Authorization': `Bearer ${acces}`
+            }
+        }
         try {
-            const acces = this.state.access_token;
-            const response = await fetch("/Hospital/list/", {
-                headers: {
-                    'Authorization': `Bearer ${acces}`
-                }
-            });
+            
+            const response = await fetch("http://194.163.40.231:8000/Hospital/list/",options);
 
             if (!response.ok) {
                 throw new Error("Network response was not ok.");
@@ -81,16 +84,22 @@ class Hospitals extends Component {
     };
     // Define the deleteHospital function separately
 deleteHospital = async (client_id, access_token) => {
-    const response = await fetch(`/Hospital/delete/${client_id}`, {
+    /* const response = await fetch(`/Hospital/delete/${client_id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         'Authorization': `Bearer ${access_token}`,
       },
-    });
-  
-    
-  
+    }); */
+     const headersPart = {
+        headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${access_token}`,
+      },
+    }
+
+    const response = await drfDeleteHospital(client_id,headersPart);
+    console.log(response);
     this.getAllHospitals();
   };
   
@@ -239,7 +248,7 @@ deleteHospital = async (client_id, access_token) => {
         const columns = [
             {
                 dataField: 'client_id',
-                text: 'Hospital ID',
+                text: 'SNO',
                 sort: true, // Enable sorting
                 sortCaret: (order, column) => {
                     return order === this.state.sortOrder ? "↑" : "↓";

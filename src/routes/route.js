@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
 
+
 const AppRoute = ({
 	component: Component,
 	layout: Layout,
@@ -16,7 +17,7 @@ const AppRoute = ({
 					<Redirect to={{ pathname: "/login", state: { from: props.location } }} />
 				);
 		}
-
+            
 				return (
 			<Layout>
 				<Component {...props} />
@@ -24,6 +25,7 @@ const AppRoute = ({
 		);
 			}}
 />
+   
 	);
 
 export default AppRoute;

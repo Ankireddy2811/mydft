@@ -5,7 +5,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-
+import {drfAddHospital} from "../../drfServer";
 class AddHospital extends Component {
     constructor(props) {
         super(props);
@@ -64,14 +64,14 @@ class AddHospital extends Component {
         formData.append("user_type", user_type);
         formData.append("name", owner_name);
 
-    
+        const headersPart = {
+            headers: {
+                'Authorization': `Bearer ${this.state.access_token}`,
+                'Content-Type': 'multipart/form-data', // Ensure you set the content type for FormData
+            }
+        }
         try {
-            const response = await axios.post("/Hospital/add/", formData, {
-                headers: {
-                    'Authorization': `Bearer ${this.state.access_token}`,
-                    'Content-Type': 'multipart/form-data', // Ensure you set the content type for FormData
-                },
-            });
+            const response = await drfAddHospital(formData,headersPart);
     
             const data = response.data;
     

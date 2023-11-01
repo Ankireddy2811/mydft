@@ -7,7 +7,7 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-
+import { drfAddPrescriptions } from "../../drfServer";
 class AddPrescription extends Component {
     constructor(props) {
         super(props);
@@ -50,9 +50,8 @@ class AddPrescription extends Component {
           access_token,
           prescription_time,
         } = this.state;
-      
-        try {
-          const response = await axios.post("/Prescription/add/", {
+
+        const formData = {
             patient,
             doctor,
             prescription_date,
@@ -60,13 +59,19 @@ class AddPrescription extends Component {
             notes,
             client,
             
-          }, {
+        }
+
+        const headersPart= {
+            
             headers: {
-              "Content-Type": "application/json",
-              'Authorization': `Bearer ${access_token}`,
-            }
-          });
+                  "Content-Type": "application/json",
+                  'Authorization': `Bearer ${access_token}`,
+                }
+              
+        }
       
+        try {
+          const response = await drfAddPrescriptions(formData,headersPart)
           const data = response.data;
       
           if (data.message) {

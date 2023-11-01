@@ -14,7 +14,7 @@ import { Table, Column, Filter as TableFilter } from 'react-filterable-table';
 
 import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css';
 //import 'react-filterable-table/dist/react-filterable-table.css'; // Import the CSS file for react-filterable-table
-
+import { drfGetBedDetails,drfDeleteBed } from "../../drfServer";
 class ListBed extends Component {
     constructor(props) {
         super(props);
@@ -31,12 +31,14 @@ class ListBed extends Component {
             exportData: [],
             popoverOpen: false,
             client_id: "",
+            access_token:""
         };
     }
 
     componentDidMount() {
         const id = JSON.parse(localStorage.getItem('client_id'));
-        this.setState({ client_id: id }, () => {
+        const access = JSON.parse(localStorage.getItem('access_token'),);
+        this.setState({ client_id: id ,access_token: access,}, () => {
             this.getAllBeds();
         });
     }
@@ -51,47 +53,73 @@ class ListBed extends Component {
         this.props.history.push(`/edit-bed/${bed_id}/${department_id}`);
     };
 
+    
     getAllBeds = async () => {
         try {
-            const { client_id } = this.state;
-            const response = await axios.post(
-                `/Bed/detail/`,
-                { client_id },
-                {
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
+            const { client_id,access_token } = this.state;
+            const headersPart = {
+                headers : {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                  }
+            }
+            const response = await drfGetBedDetails({ client_id },headersPart);
+
+            const data = response.data.Data;
+            this.setState({ data: data, loading: false });
+        } catch (error) {
+            this.setState({ error: 'Error fetching data'})
+        }
+    }
+        
+
+    /* getAllBeds = async () => {
+        try {
+            const { client_id,access_token } = this.state; // Destructure client_id and access_token
+            
+         
+            const payload = { client_id};
+            console.log(payload)
+            const options = {
+                method:"POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${access_token}`,
+                  },
+                body:JSON.stringify(payload)
+    
+            }
+             const response = await fetch(`https://www.iyrajewels.com/Bed/detail/`,options)
+             // console.log(response)
+            
             console.log(response)
             const data = response.data.Data;
+            console.log(data)
             this.setState({ data: data, loading: false });
         } catch (error) {
             this.setState({ error: 'Error fetching data', loading: false });
         }
-    };
+    };  */ 
 
     handleDeleteBed = async (bed_id, department_id) => {
         const confirmDelete = window.confirm("Delete this bed?\nYou won't be able to revert this!");
         const {
-            client_id,
+            client_id,access_token
         } = this.state;
         if (confirmDelete) {
+            const headersPart = {
+                headers : {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                  }
+            }
+            const formData = {
+                client_id, department_id, bed_id
+            }
             try {
-                 const response = await fetch(`/Bed/deleteBy/`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ client_id, department_id, bed_id }),
-                }); 
+                
 
-                /* const response = await fetch(`https://www.iyrajewels.com/Bed/deleteBy/`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjk5MjAzNjE1LCJpYXQiOjE2OTc0NzU2MTUsImp0aSI6ImE5NDVlMWFjMmU4YjQwYWU4YjE2YTk5YzI3ZmVkNWYzIiwiY2xpZW50X2lkIjoiSElEMDAwMTkifQ.mIKsLB_pFagl43MNHakfpU9HD7fRRIoHs5j15mdWEoI",
-                    },
-                    body: JSON.stringify({ client_id, department_id, bed_id }),
-                }); */
+                const response = await drfDeleteBed(formData,headersPart); 
 
                 if (!response.ok) {
                     throw new Error("Deletion failed");

@@ -12,6 +12,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { drfDeleteMedicine ,drfGetMedicineDetails} from "../../drfServer";
 class Medicines extends Component {
     constructor(props) {
         super(props);
@@ -53,16 +54,15 @@ class Medicines extends Component {
 
     getAllMedicines = async () => {
         const acces = this.state.access_token;
-
+        const headersPart = {
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${acces}`,
+            }
+          }
         try {
             const { client_id} = this.state;
-            const response = await axios.post(`/Medicine/details/`, { client_id }, {
-              headers: {
-                "Content-Type": "application/json", // Set the content type to JSON
-                'Authorization': `Bearer ${acces}`,
-
-              },
-            });
+            const response = await drfGetMedicineDetails({ client_id },headersPart );
         
           //   if (response.status !== 200) {
           //     throw new Error("Network response was not ok.");
@@ -80,6 +80,12 @@ class Medicines extends Component {
 
     handleDeleteMedicine = async (medicine_id) => {
         const { client_id, access_token } = this.state;
+        const headersPart = {
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${access_token}`,
+            }
+          }
       
         try {
           const result = await Swal.fire({
@@ -93,16 +99,8 @@ class Medicines extends Component {
           });
       
           if (result.isConfirmed) {
-            await axios.post(
-              `/Medicine/delete-By/`,
-              { medicine_id, client_id },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  'Authorization': `Bearer ${access_token}`,
-                },
-              }
-            );
+           
+            await drfDeleteMedicine({ medicine_id, client_id },headersPart);
       
             Swal.fire(
               'Deleted!',
@@ -189,6 +187,13 @@ class Medicines extends Component {
     render() {
         const { data, loading, error, currentPage, medicinesPerPage } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["medicine_id"] = j+1;
+            }
+        }
+
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -202,7 +207,7 @@ class Medicines extends Component {
         const currentMedicines = data?.slice(indexOfFirstMedicine, indexOfLastMedicine);
 
         const columns = [
-            { dataField: 'medicine_id', text: 'Medicine Id', sort: true },
+            { dataField: 'medicine_id', text: 'SNO', sort: true },
             { dataField: 'medicine_name', text: 'Medicine Name' },
             { dataField: 'manufacturer', text: 'Manufacturer', sort: true },
             { dataField: 'unit_price', text: 'Unit Price' },

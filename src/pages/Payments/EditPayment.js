@@ -10,6 +10,8 @@ import { withRouter } from "react-router-dom";
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 
+import { drfUpdatePayment } from "../../drfServer";
+
 class EditPayment extends Component {
     constructor(props) {
         super(props);
@@ -38,7 +40,7 @@ class EditPayment extends Component {
           
 
         try {
-            const response = await fetch(`/Payment/details-By/`,{
+            const response = await fetch(`https://www.iyrajewels.com/Payment/details-By/`,{
                 method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,20 +86,24 @@ class EditPayment extends Component {
           client_id,
           access_token,
         } = this.state;
-      
-        try {
-          const response = await axios.put(`/Payment/Updated/`, {
+
+        const formData = {
             invoice,
             payment_date,
             amount,
             payment_id,
             client_id,
-          }, {
+          }
+
+        const headersPart = {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${access_token}`,
             },
-          });
+          }
+      
+        try {
+          const response = await drfUpdatePayment(formData,headersPart);
       
           const data = response.data;
       

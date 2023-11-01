@@ -13,7 +13,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
-
+import { drfAddDepartment,drfGetDepartmentDetails,drfUpdateDepartment,drfDeleteDepartment, } from "../../drfServer";
 class Departments extends Component {
     constructor(props) {
         super(props);
@@ -61,18 +61,16 @@ class Departments extends Component {
 
     getDepartments = async () => {
         const acces = this.state.access_token;
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json", // Set the content type to JSON
+                'Authorization': `Bearer ${acces}`,
 
+            },
+        }
         try {
             const { client_id } = this.state;
-            const response = await axios.post(`/Department/details/`, { client_id }, {
-                headers: {
-                    "Content-Type": "application/json", // Set the content type to JSON
-                    'Authorization': `Bearer ${acces}`,
-
-                },
-            });
-
-
+            const response = await drfGetDepartmentDetails({ client_id },headersPart);
             const data = await response.data.Data
             this.setState({ data: data, loading: false });
         } catch (error) {
@@ -106,16 +104,16 @@ class Departments extends Component {
             
             
         };
-        try {
-            const response = await fetch(`/Department/Updated/`, {
-                method: "PUT",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${access_token}`,
+        const headersPart ={ 
+            headers:
+          {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
 
-                },
-                body: JSON.stringify(formData),
-            });
+          }
+        }
+        try {
+            const response = await drfUpdateDepartment(formData,headersPart);
             const data = await response.json();
 
             if (response.ok && data.message) {
@@ -135,24 +133,29 @@ class Departments extends Component {
 
         const { department_name, client_id,access_token,
         } = this.state;
+
         const client = "";
+        const formData = {
+            department_name,
+            client:client_id,
+            
+            
+        };
+        const headersPart ={ 
+            headers:
+          {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+
+          }
+        }
+        
         try {
-            const response = await fetch(`/Department/add/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer ${access_token}`,
-
-                },
-                body: JSON.stringify({
-                    department_name,
-                    client: client_id,
-                }),
-            });
-
-            if (!response.ok) {
+            const response = await drfAddDepartment(formData,headersPart);
+            console.log(response)
+            /* if (!response.ok) {
                 throw new Error("Addition failed");
-            }
+            } */
 
             this.setState({
                 showAddForm: false,
@@ -193,17 +196,21 @@ class Departments extends Component {
         }
       };
       deleteDepartment = async (id, client_id, access_token) => {
-        const response = await axios.post(
-            `/Department/deleteBy/`,
-            { department_id: id, client_id },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access_token}`,
-              },
-            }
-          );
-    
+        const formData = {
+            department_id:id,
+            client_id
+        }
+        const headersPart ={ 
+            headers:
+          {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+
+          }
+        }
+       
+        const response = await drfDeleteDepartment(formData,headersPart);
+        console.log(response)
           this.getDepartments();
             Swal.fire('Deleted!', 'The department has been deleted.', 'success');
       };
@@ -276,6 +283,12 @@ class Departments extends Component {
     render() {
         const { data, loading, error, showAddForm, showEditForm, department_id, department_name, newDepartment_name } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["department_id"] = j+1;
+            }
+        }
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -289,7 +302,7 @@ class Departments extends Component {
         const currentDepartments = data?.slice(indexOfFirstDepartments, indexOfLastDepartments);
 
         const columns = [
-            { dataField: 'department_id', text: 'Department ID', sort: true },
+            { dataField: 'department_id', text: 'SNO', sort: true },
             { dataField: 'department_name', text: 'Department Name', sort: true },
             { dataField: 'created_at', text: 'Created At', sort: true },
             { dataField: 'updated_at', text: 'Updated At', sort: true },

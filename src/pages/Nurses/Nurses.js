@@ -12,6 +12,8 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+
+import {drfDeleteNurses,drfGetNursesDetails} from "../../drfServer"
 class Nurses extends Component {
     constructor(props) {
         super(props);
@@ -74,21 +76,17 @@ class Nurses extends Component {
     // };
     getAllNurses = async () => {
         const acces = this.state.access_token;
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${acces}`,
 
+            }
+        }
         try {
             const { client_id,sortOrder } = this.state;
 
-            const response = await axios.post(
-                `/Nurse/details/`,
-                { client_id },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        'Authorization': `Bearer ${acces}`,
-
-                    },
-                }
-            );
+            const response = await drfGetNursesDetails({ client_id },headersPart);
     
             if (response.status !== 200) {
                 throw new Error("Network response was not ok.");
@@ -134,17 +132,16 @@ class Nurses extends Component {
       };
       
       deleteNurse = async (nurse_id, client_id, access_token) => {
-        try {
-          const response = await axios.post(
-            `/Nurse/delete-By/`,
-            { nurse_id, client_id },
-            {
-              headers: {
+        const headersPart = {
+            headers: {
                 "Content-Type": "application/json",
                 'Authorization': `Bearer ${access_token}`,
-              },
+
             }
-          );
+        }
+        const formData = {nurse_id, client_id}
+        try {
+          await drfDeleteNurses(formData,headersPart);
           await this.getAllNurses();
 
           
@@ -240,6 +237,12 @@ class Nurses extends Component {
 
     render() {
         const { data, loading, error, currentPage, nursesPerPage,sortOrder, sortField, sortDirection, searchQuery } = this.state;
+
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["nurse_id"] = j+1;
+            }
+        }
         
         if (loading) {
             return <div>Loading...</div>;

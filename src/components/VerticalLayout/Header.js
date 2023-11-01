@@ -14,7 +14,7 @@ import {
     DropdownMenu,
 } from "reactstrap";
 
-import { Link } from "react-router-dom";
+import { Link,withRouter } from "react-router-dom";
 
 // Import menuDropdown
 import LanguageDropdown from "../CommonForBoth/TopbarDropdown/LanguageDropdown";
@@ -43,7 +43,8 @@ class Header extends Component {
         super(props);
         this.state = {
             isSearch: false,
-            isSocialPf: false
+            isSocialPf: false,
+            inputText:""
         };
         this.toggleMenu = this.toggleMenu.bind(this);
         this.toggleRightbar = this.toggleRightbar.bind(this);
@@ -91,7 +92,22 @@ class Header extends Component {
         }
     }
 
+    onEnterText = (event)=>{
+     this.setState({inputText:event.target.value});
+     console.log(event.target.value)
+     console.log(this.props);
+    }
+
+    handleKeyDown = (event)=>{
+        
+        if (event.key === 'Enter'){
+            const {inputText}= this.state
+            this.props.history.replace(`/${inputText}`); 
+        }
+    }
+
     render() {
+        console.log(this.props);
         return (
             <React.Fragment>
                 <header id="page-topbar">
@@ -124,7 +140,7 @@ class Header extends Component {
 
                             <Form className="app-search d-none d-lg-block">
                                 <div className="position-relative">
-                                    <Input type="text" className="form-control" placeholder={this.props.t('Search')} />
+                                    <Input type="text" className="form-control" placeholder={this.props.t('Search')} onKeyDown={this.handleKeyDown} onChange={this.onEnterText}/>
                                     <span className="ri-search-line"></span>
                                 </div>
                             </Form>
@@ -184,4 +200,4 @@ const mapStatetoProps = state => {
     return { layoutType };
 };
 
-export default connect(mapStatetoProps, { toggleRightSidebar })(withNamespaces()(Header));
+export default connect(mapStatetoProps, { toggleRightSidebar })(withNamespaces()(withRouter(Header)));

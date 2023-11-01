@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styli
 
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
+import { drfAddLabTest } from "../../drfServer";
 
 class AddLabTest extends Component {
     constructor(props) {
@@ -52,20 +53,23 @@ class AddLabTest extends Component {
           access_token,
         } = this.state;
       
+      const formData = {
+        patient,
+        doctor,
+        test_name,
+        test_date,
+        results,
+        client,
+      }
+
+      const headersPart = {
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${access_token}`
+        }
+      }
         try {
-          const response = await axios.post("/LabTest/add/", {
-            patient,
-            doctor,
-            test_name,
-            test_date,
-            results,
-            client,
-          }, {
-            headers: {
-              "Content-Type": "application/json",
-              'Authorization': `Bearer ${access_token}`
-            }
-          });
+          const response = await drfAddLabTest(formData,headersPart);
       
           if (response.data.message) {
             toast.success(response.data.message);

@@ -11,6 +11,7 @@ import { toast } from 'react-toastify'; // Import toast from react-toastify
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 // Import Breadcrumb
+import {drfUpdateHospital} from "../../drfServer";
 class HProfile extends Component {
     constructor() {
         super();
@@ -45,7 +46,7 @@ class HProfile extends Component {
     if (access) {
       this.setState({ access_token: access }, () => {
         this.setState({ client_id: id }, () => {
-          fetch(`/Hospital/list/${this.state.client_id}/`, {
+          fetch(`http://194.163.40.231:8000/Hospital/list/${this.state.client_id}/`, {
             headers: {
               Authorization: `Bearer ${this.state.access_token}`,
             },
@@ -131,7 +132,7 @@ class HProfile extends Component {
     //             console.error("Error updating profile:", error);
     //         });
     // };
-    handleSubmit = (e) => {
+    handleSubmit = async(e) => {
         e.preventDefault();
          const {client_id,access_token} =this.state;
         const formData = new FormData();
@@ -147,13 +148,17 @@ class HProfile extends Component {
         if (this.state.profile) {
             formData.append("profile_image", this.state.profile);
         }
-    
-        axios.put(`/Hospital/update/${client_id}/`, formData, {
+
+        const headersPart = {
             headers: {
-                Authorization: `Bearer ${access_token}`,
+                'Authorization': `Bearer ${access_token}`,
                 'Content-Type': 'multipart/form-data',
-            },
-        })
+            }
+        }
+        
+        const response = await drfUpdateHospital(client_id,formData,headersPart)
+    
+        
         .then((response) => {
             // Handle success response here, e.g., show a success message
             toast.success("Profile updated successfully");

@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
+import { drfDeletePrescriptions,drfGetPrescriptions } from "../../drfServer";
 class Prescriptions extends Component {
     constructor(props) {
         super(props);
@@ -65,17 +66,13 @@ class Prescriptions extends Component {
         //     this.setState({ error: 'Error fetching data', loading: false });
         // }
         const acces = this.state.access_token;
+        const headersPart = {
+            headers: { "Content-Type": "application/json",'Authorization': `Bearer ${acces}`}
+        }
 
         try {
             const { client_id } = this.state;
-            const response = await axios.post(
-                `/Prescription/details/`,
-                { client_id }, // Wrap client_id in an object
-                {
-                    headers: { "Content-Type": "application/json",'Authorization': `Bearer ${acces}`
-                },
-                }
-            );
+            const response = await drfGetPrescriptions({client_id },headersPart);
     
             
     
@@ -116,19 +113,18 @@ class Prescriptions extends Component {
       };
       
       deletePrescription = async (prescription_id, client_id, access_token) => {
+        const formData =  { prescription_id, client_id };
+        const headersPart =  {
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${access_token}`,
+            },
+          }
+        
         try {
-          const response = await axios.post(
-            `/Prescription/delete-By/`,
-            { prescription_id, client_id },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                'Authorization': `Bearer ${access_token}`,
-              },
-            }
-          );
+          const response = await drfDeletePrescriptions(formData,headersPart);
       
-          if (response.status === 200) {
+          if (response.status === 204) {
             await this.getAllPrescriptions();
             toast.success('The prescription has been deleted.');
           } else {
@@ -211,6 +207,13 @@ class Prescriptions extends Component {
     render() {
         const { data, loading, error, currentPage, prescriptionPerPage } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["prescription_id"] = j+1;
+            }
+        }
+
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -224,7 +227,7 @@ class Prescriptions extends Component {
         const currentPrescription = data.slice(indexOfFirstPrescription, indexOfLastPrescription);
 
         const columns = [
-            { dataField: 'prescription_id', text: 'Prescription ID', sort: true },
+            { dataField: 'prescription_id', text: 'SNO', sort: true },
             { dataField: 'prescription_date', text: 'Prescription Date', sort: true },
             { dataField: 'notes', text: 'Notes', sort: true },
             { dataField: 'patient', text: 'Patient ID', sort: true },

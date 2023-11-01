@@ -12,7 +12,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
-// import { drfBedData } from "../../drfServer";
+import { drfGetBedDetails,drfDeleteBed } from "../../drfServer";
 
 class Beds extends Component {
     constructor(props) {
@@ -63,7 +63,7 @@ class Beds extends Component {
         this.props.history.push(`/edit-bed/${bed_id}/${department_id}`);
     };
 
-    getAllBeds = async () => {
+    /* getAllBeds = async () => {
         try {
             const { client_id, access_token } = this.state; // Destructure client_id and access_token
             
@@ -74,19 +74,40 @@ class Beds extends Component {
                 method:"POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${access_token}`,
+                    'Authorization': `Bearer ${access_token}`,
                   },
                 body:JSON.stringify(payload)
     
             }
              const response = await fetch(`https://www.iyrajewels.com/Bed/detail/`,options)
-    
+             console.log(response)
             const data = response.data.Data; // No need to await here, response.data is already a Promise
+            console.log(data)
             this.setState({ data, loading: false }); // You can use object shorthand here
         } catch (error) {
             this.setState({ error: 'Error fetching data', loading: false });
         }
-    };
+    }; */
+
+    getAllBeds = async () => {
+        try {
+           
+            const { client_id,access_token } = this.state;
+            const headersPart = {
+                headers : {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                  }
+            }
+            const response = await drfGetBedDetails({ client_id },headersPart);
+
+            const data = response.data.Data;
+            this.setState({ data: data, loading: false });
+        } catch (error) {
+            this.setState({ error: 'Error fetching drta-yfks-utm'})
+        }
+    }
+        
     
     handleDeleteBed = async (bed_id, department_id) => {
         const { client_id, access_token } = this.state;
@@ -114,20 +135,20 @@ class Beds extends Component {
       };
       
       deleteBed = async (bed_id, department_id, client_id, access_token) => {
-        try {
-        const apiUrl = "https://www.iyrajewels.com/Bed/deleteBy/"
-        const payload = {bed_id, department_id, client_id};
-        const options = {
-            method:"POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access_token}`,
-              },
-            body:JSON.stringify(payload)
-
+        const headersPart = {
+            headers : {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              }
         }
+        const formData = {
+            client_id, department_id, bed_id
+        }
+        try {
+        
+        await drfDeleteBed(formData,headersPart);
 
-        const response = await fetch(apiUrl,options)
+       
        
         await this.getAllBeds();
 
@@ -208,8 +229,13 @@ class Beds extends Component {
 
     render() {
         const { data, loading, error, currentPage, bedsPerPage } = this.state;
-
-        if (loading) {
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["bed_id"] = j+1;
+            }
+        }
+    
+       if (loading) {
             return <div>Loading...</div>;
         }
 
@@ -222,7 +248,7 @@ class Beds extends Component {
         const currentBed = data?.slice(indexOfFirstBed, indexOfLastBed);
 
         const columns = [
-            { dataField: 'bed_id', text: 'Bed ID', sort: true },
+            { dataField: 'bed_id', text: 'SNO', sort: true },
             { dataField: 'bed_number', text: 'Bed Number', sort: true },
             { dataField: 'department_id', text: 'Department ID', sort: true },
             { dataField: 'is_occupied', text: 'Occupied' },

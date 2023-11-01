@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styli
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
+import { drfAddDoctor } from "../../drfServer";
 
 class AddDoctor extends Component {
   constructor(props) {
@@ -120,12 +120,13 @@ class AddDoctor extends Component {
 
 
     try {
-      const response = await axios.post("/Doctor/register/", formData, {
+      const headersPart = {
         headers: {
           'Authorization': `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data', // Set the content type to multipart/form-data
         },
-      });
+      }
+      const response = await drfAddDoctor(formData, headersPart);
 
       if (response.data.message) {
         toast.success(response.data.message);

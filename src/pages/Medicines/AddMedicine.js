@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styli
 // Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 
+import { drfAddMedicine } from "../../drfServer";
 class AddMedicine extends Component {
     constructor(props) {
         super(props);
@@ -49,20 +50,23 @@ class AddMedicine extends Component {
       access_token,
     } = this.state;
 
-    try {
-      const response = await axios.post(`/Medicine/register/`, {
+    const formData = {
         medicine_name,
         manufacturer,
         unit_price,
         stock_quantity,
         client,
-      }, {
+      }
+    
+    const headersPart = {
         headers: {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${access_token}`,
         }
-      });
+      }
 
+    try {
+      const response = await drfAddMedicine(formData,headersPart);
       const data = response.data;
 
       if (data.message) {

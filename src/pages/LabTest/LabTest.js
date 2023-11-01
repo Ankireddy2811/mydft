@@ -12,6 +12,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { drfDeleteLabTest,drfGetLabTestDetails } from "../../drfServer";
 class LabTest extends Component {
     constructor(props) {
         super(props);
@@ -63,16 +64,17 @@ class LabTest extends Component {
     
     getAllLabTest = async () => {
         const acces = this.state.access_token;
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json", // Set the content type to JSON,
+                'Authorization': `Bearer ${acces}`,
+  
+              }
+        }
 
         try {
           const { client_id} = this.state;
-          const response = await axios.post(`/LabTest/details/`, { client_id }, {
-            headers: {
-              "Content-Type": "application/json", // Set the content type to JSON,
-              'Authorization': `Bearer ${acces}`,
-
-            },
-          });
+          const response = await drfGetLabTestDetails({ client_id }, headersPart);
       
         //   if (response.status !== 200) {
         //     throw new Error("Network response was not ok.");
@@ -114,17 +116,15 @@ class LabTest extends Component {
       };
       
       deleteLabTest = async (lab_test_id, client_id, access_token) => {
+        const formData = {lab_test_id, client_id}
+        const headersPart = {
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${access_token}`,
+            },
+          }
         try {
-          const response = await axios.post(
-            `/LabTest/delete-By/`,
-            { lab_test_id, client_id },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access_token}`,
-              },
-            }
-          );
+          await drfDeleteLabTest(formData,headersPart);
           await this.getAllLabTest();
 
         } catch (error) {
@@ -206,6 +206,12 @@ class LabTest extends Component {
     render() {
         const { data, loading, error, currentPage, labPerPage } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["lab_test_id"] = j+1;
+            }
+        }
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -219,7 +225,7 @@ class LabTest extends Component {
         const currentLab = data?.slice(indexOfFirstLab, indexOfLastLab);
 
         const columns = [
-            { dataField: 'lab_test_id', text: 'Lab Test ID', sort: true },
+            { dataField: 'lab_test_id', text: 'SNO', sort: true },
             { dataField: 'patient_id', text: 'Patient ID' },
             { dataField: 'doctor_id', text: 'Doctor ID' },
             { dataField: 'test_name', text: 'Test Name' },

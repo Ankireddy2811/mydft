@@ -7,7 +7,7 @@ import { withRouter } from 'react-router-dom';
 
 //Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-
+import {drfUpdateHospital} from "../../drfServer";
 class EditHospital extends Component {
     constructor(props) {
         super(props);
@@ -102,15 +102,29 @@ class EditHospital extends Component {
         this.sendFormDataToServer(formData);
       };
       
-      sendFormDataToServer = (formData) => {
-        axios
-          .put(`/Hospital/update/${this.state.client_id}/`, formData, {
+      sendFormDataToServer = async (formData) => {
+        const headersPart = {
             headers: {
-              Authorization: `Bearer ${this.state.access_token}`,
-              'Content-Type': 'application/json',
-            },
-          })
-          .then((response) => {
+                Authorization: `Bearer ${this.state.access_token}`,
+                'Content-Type': 'application/json',
+            }
+        }
+
+        try{
+         const client_id = this.state.client_id;
+         const response = await drfUpdateHospital(client_id,formData,headersPart);
+         if (response.data.message) {
+            toast.success(response.data.message);
+            this.props.history.push('/hospital-list'); // Assuming "/hospital-list" is the route for the hospital list page
+          } else {
+            toast.error(response.data.message || 'An error occurred while processing your request.');
+          }
+        }
+        catch (error) {
+            console.error("Error:", error);
+            toast.error("An error occurred while processing your request.");
+        }
+          /* .then((response) => {
             const data = response.data;
       
             if (data.message) {
@@ -123,8 +137,9 @@ class EditHospital extends Component {
           .catch((error) => {
             console.error("Error:", error);
             toast.error("An error occurred while processing your request.");
-          });
+          }); */
       };
+    
       
 
     render() {

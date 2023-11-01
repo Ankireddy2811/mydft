@@ -13,6 +13,7 @@ import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.m
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { drfGetPaymentDetails,drfDeletePayment } from "../../drfServer";
 class Payments extends Component {
     constructor(props) {
         super(props);
@@ -75,18 +76,14 @@ class Payments extends Component {
     // };
     getAllPayments = async () => {
         const acces = this.state.access_token;
+        const headersPart = {
+            headers: { "Content-Type": "application/json",'Authorization': `Bearer ${acces}`
+        },
+        }    
 
         try {
             const { client_id } = this.state;
-            const response = await axios.post(
-                `/Payment/details/`,
-                { client_id }, // Wrap client_id in an object
-                {
-                    headers: { "Content-Type": "application/json",'Authorization': `Bearer ${acces}`
-                },
-                    
-                }
-            );
+            const response = await drfGetPaymentDetails({ client_id },headersPart);
     
             if (response.status !== 200) {
                 throw new Error("Network response was not ok.");
@@ -130,18 +127,17 @@ class Payments extends Component {
       };
       
       deletePayment = async (payment_id, client_id, access_token) => {
+        
+        const formData = { payment_id, client_id }
+        const headersPart = { headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${access_token}`,
+          },}
         try {
-          const response = await fetch(`/Payment/delete-By/`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              'Authorization': `Bearer ${access_token}`,
-            },
-            body: JSON.stringify({ payment_id, client_id }),
-          });
+         const response = await drfDeletePayment(formData,headersPart)
       
-          if (!response.ok) {
-            throw new Error("Deletion failed");
+          if (response.ok) {
+            throw new Error("Deletion Success");
           }
       
           await this.getAllPayments();
@@ -221,6 +217,12 @@ class Payments extends Component {
     render() {
         const { data, loading, error, currentPage, paymentPerPage } = this.state;
 
+        if (data !== null){
+            for (let j=0; j < data.length;j++){
+                data[j]["payment_id"] = j+1;
+            }
+        }
+
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -234,7 +236,7 @@ class Payments extends Component {
         const currentPayments = data?.slice(indexOfFirstPayment, indexOfLastPayment);
 
         const columns = [
-            { dataField: 'payment_id', text: 'Payment ID', sort: true },
+            { dataField: 'payment_id', text: 'SNO', sort: true },
             { dataField: 'invoice_id', text: 'Invoice ID' },
             { dataField: 'payment_date', text: 'Payment Date' },
             { dataField: 'amount', text: 'Amount' },
