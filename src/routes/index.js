@@ -72,7 +72,7 @@ import EditPayment from "../pages/Payments/EditPayment";
 import ListBed from "../pages/Beds/ListBed";
 //Profile
 import HProfile from "../pages/Profile/HProfile";
-
+//const isRootPath = window.location.pathname === '/';
 const authProtectedRoutes = [
     // Doctors
 	{ path: "/doctors", component: Doctors},
@@ -137,12 +137,24 @@ const authProtectedRoutes = [
 
 
 	{ path: "/dashboard", component: Dashboard },
-    { path: "/not-found", component: NotFound },
+
+    // { path: "/not-found", component: NotFound },
 	// this route should be at the end of all other routes
-	 { path: "/", exact: true, component: () => <Redirect to="/dashboard" /> },
+	{ path: "/", exact: true, component: () => <Redirect to="/dashboard" /> },
     
-     { path: "*", exact:true,component: () => <Redirect to="/not-found" /> }
+    //{ path: "*", exact:true,component: () => <Redirect to="/not-found" /> }
+
+	 //{ component: NotFound},
+	 //{ path: "/", component: Dashboard },
+	// {path:"*", exact:true, component: ()=><Redirect to="/not-found"/>}
 	
+   
+
+	
+    /* { path: "/home", component: Dashboard },
+      
+    { path: "/", component: NotFound } */
+    
 
 ];
 
