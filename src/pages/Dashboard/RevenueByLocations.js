@@ -1,25 +1,21 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Row, Card, CardBody, Col, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import { Link } from "react-router-dom";
 
 //Import Vector Map Component
 import Vector from "./Vectormap";
 
-class RevenueByLocations extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            menu: false
-        }
-    }
+const RevenueByLocations = ()=>{
+   
+    const [menu,setMenu] = useState(false);
 
-    render() {
+   
         return (
             <React.Fragment>
                 <Col lg={4}>
                     <Card>
                         <CardBody>
-                            <Dropdown className="float-end" isOpen={this.state.menu} toggle={() => this.setState({ menu: !this.state.menu })}>
+                            <Dropdown className="float-end" isOpen={menu} toggle={() => setMenu(!menu)}>
                                 <DropdownToggle tag="i" className="darrow-none card-drop" aria-expanded="false">
                                     <i className="mdi mdi-dots-vertical"></i>
                                 </DropdownToggle>
@@ -85,6 +81,6 @@ class RevenueByLocations extends Component {
             </React.Fragment>
         );
     }
-}
 
-export default RevenueByLocations;
+export default RevenueByLocations
+

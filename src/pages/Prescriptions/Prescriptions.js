@@ -51,7 +51,7 @@ const Prescriptions = (props) => {
         }
 
         try {
-            const response = await drfGetPrescriptions(client_id, headersPart);
+            const response = await drfGetPrescriptions({client_id}, headersPart);
             const fetchedData = response.data;
             setData(fetchedData);
             setLoading(false);

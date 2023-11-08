@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Row, Card, CardBody, Col, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Form, Input, Button } from "reactstrap";
 
 //Import images
@@ -7,17 +7,13 @@ import avatar2 from "../../assets/images/users/avatar-2.jpg";
 //Simple bar
 import SimpleBar from "simplebar-react";
 
-class ChatBox extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isSearch: false,
-            isSetting: false,
-            isMore: false
-        }
-    }
+const ChatBox = (props)=>{
+   
+    const [isSearch, setIsSearch] = useState(false);
+    const [isSetting, setIsSetting] = useState(false);
+    const [isMore, setIsMore] = useState(false);
 
-    render() {
+    
         return (
             <React.Fragment>
                 <Col lg={4}>
@@ -33,7 +29,7 @@ class ChatBox extends Component {
                                     <Col md={7} xs={3}>
                                         <ul className="list-inline user-chat-nav text-end mb-0">
                                             <li className="list-inline-item">
-                                                <Dropdown isOpen={this.state.isSearch} toggle={() => this.setState({ isSearch: !this.state.isSearch })} >
+                                                <Dropdown isOpen={isSearch} toggle={() => setIsSearch(!isSearch )} >
                                                     <DropdownToggle tag="i" className="btn nav-btn" type="button">
                                                         <i className="mdi mdi-magnify"></i>
                                                     </DropdownToggle>
@@ -50,7 +46,7 @@ class ChatBox extends Component {
                                                 </Dropdown>
                                             </li>
                                             <li className="list-inline-item d-none d-sm-inline-block">
-                                                <Dropdown isOpen={this.state.isSetting} toggle={() => this.setState({ isSetting: !this.state.isSetting })}>
+                                                <Dropdown isOpen={isSetting} toggle={() => setIsSetting(isSetting)}>
                                                     <DropdownToggle tag="button" className="btn nav-btn" type="button" >
                                                         <i className="mdi mdi-cog"></i>
                                                     </DropdownToggle>
@@ -64,7 +60,7 @@ class ChatBox extends Component {
                                             </li>
 
                                             <li className="list-inline-item">
-                                                <Dropdown isOpen={this.state.isMore} toggle={() => this.setState({ isMore: !this.state.isMore })}>
+                                                <Dropdown isOpen={isMore} toggle={() => setIsMore(!isMore)}>
                                                     <DropdownToggle tag="button" className="btn nav-btn" type="button" >
                                                         <i className="mdi mdi-dots-horizontal"></i>
                                                     </DropdownToggle>
@@ -230,6 +226,7 @@ class ChatBox extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default ChatBox;
+

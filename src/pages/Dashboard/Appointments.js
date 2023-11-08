@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState,useEffect } from "react";
 import { Row, Col, Card, CardBody, Container } from "reactstrap";
 import { FaEdit,FaTimes,FaTimesCircle } from 'react-icons/fa';
 import { withRouter } from "react-router-dom";
@@ -12,130 +12,117 @@ import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap
 import { toast } from 'react-toastify'; // Import toast from react-toastify
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
+import {drfDeleteAppointment,drfGetAllAppointmentDetails} from "../../drfServer";
 
-class Appointments extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            breadcrumbItems: [
-                { title: "Tables", link: "#" },
-                { title: "Responsive Table", link: "#" },
-            ],
-            data: null,
-            loading: true,
-            error: null,
-            currentPage: 1,
-            appointmentsPerPage: 5,
-            exportData: [],
-            exportDropdownOpen: false,
-            client_id:"",
-            sortOrder: 'asc', // Initial sorting order
-            sortField: 'appointment_id', // Initial sorting field
-            sortDirection: 'asc', // Initial sorting direction
-            sortedColumn: 'appointment_id', // Initial sorted column
-            searchQuery: "", // State for search query
-            access_token:"",
-        };
-    }
-
+const Appointments = (props) => {
+    
+        const [breadcrumbItems] = useState([
+            { title: 'Tables', link: '#' },
+            { title: 'Responsive Table', link: '#' },
+          ]);
+        
+        const [data, setData] = useState(null);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState(null);
+        const [currentPage, setCurrentPage] = useState(1);
+        const [appointmentsPerPage] = useState(10);
+        const [sortOrder, setSortOrder] = useState('asc');
+        const [sortField, setSortField] = useState('appointment_id');
+        const [sortDirection, setSortDirection] = useState('asc');
+        const [sortedColumn, setSortedColumn] = useState('appointment_id');
+        const [exportData, setExportData] = useState([]);
+        const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+        const [client_id,setClientId] = useState('');
+        const [access_token, setAccessToken] = useState('');
+        const [csvLink, setCsvLink] = useState(null);
    
-      componentDidMount() {
+
+    useEffect(() => {
         const access = JSON.parse(localStorage.getItem('access_token'));
         const id = JSON.parse(localStorage.getItem('client_id'));
         if (access) {
-          this.setState({ access_token: access });
-          console.log("hello" + this.state.access_token);
-          this.setState({ client_id: id }, () => {
-            this.getAppointments();
-          });
+            setAccessToken(access);
+            setClientId(id);
+            getAppointments(id,access);
         }
-      }
-      
-    getAppointments = async () => {
-        const acces = this.state.access_token;
+    }, [client_id, access_token]);
+
+   
+    const getAppointments = async (client_id,access_token) => {
+       
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json", // Set the content type to JSON
+                'Authorization': `Bearer ${access_token}`, 
+            }
+        }
 
         try {
-            const {
-                client_id,access_token,
-
-                 
-               } = this.state;
-           
-            const response = await fetch(`http://194.163.40.231:8000/Appointment/All/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json", // Set the content type to JSON
-                    'Authorization': `Bearer ${access_token}`,                },
-
-                body: JSON.stringify({client_id}),
-            });
-            if (!response.ok) {
+            const response = await drfGetAllAppointmentDetails({client_id},headersPart);
+            if (response.status === 200) {
+                const data = await response.data;
+                setData(data);
+                setLoading(false);
+            }
+            else{
                 throw new Error("Network response was not ok.");
             }
-            const data = await response.json();
-            console.log("Response data:", data);
-
-            this.setState({ data, loading: false });
+           
         } catch (error) {
-            this.setState({ error: 'Error fetching data', loading: false });
+            setError('Error fetching data');
+            setLoading(false);
         }
     };
 
-    handleEdit = (appointment) => {
-        this.props.history.push(`/edit-appointment/${appointment.appointment_id}`, { appointment });
+    const handleEdit = (appointment) => {
+        props.history.push(`/edit-appointment/${appointment.appointment_id}`, { appointment });
     };
 
-    handleCancelAppointment = async (appointment_id) => {
-        const {
-            client_id,access_token,
+    const handleCancelAppointment = async (appointment_id) => {
 
-             
-           } = this.state;
+        const headersPart = {
+            headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${access_token}`,
+        }
+    }
+      
+        const requestFormData = {appointment_id,client_id}
        
         const confirmDelete = window.confirm("Cancel this appointment?\nYou won't be able to revert this!");
 
         if (confirmDelete) {
             try {
-                const response = await fetch(`/Appointment/cancelled/`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",'Authorization': `Bearer ${access_token}`,
-                    },
-                    body: JSON.stringify({appointment_id,client_id,}),
-
-                });
+                const response = await drfDeleteAppointment(requestFormData,headersPart);
 
                 if (!response.ok) {
                     throw new Error("Cancellation failed");
                 }
 
-                this.getAppointments();
-                alert("The appointment has been cancelled.");
+                await getAppointments();
+                toast.success("The appointment has been cancelled.");
             } catch (error) {
                 console.error('Cancelled failed:', error);
-                alert("Cancelled failed");
+                toast.error("Cancelled failed");
             }
         }
     };
+    
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    };
+   
 
-    handlePageChange = (newPage) => {
-        this.setState({
-            currentPage: newPage,
-        });
+    const toggleExportDropdown = () => {
+        setExportDropdownOpen(!exportDropdownOpen);
     };
 
-    
-
-    
-
-    toggleExportDropdown = () => {
-        this.setState((prevState) => ({
-            exportDropdownOpen: !prevState.exportDropdownOpen,
-        }));
-    };
-
-    renderPagination = () => {
-        const { data, currentPage, appointmentsPerPage } = this.state;
+    const renderPagination = () => {
+      
+        
+        if(!data){
+            return null;
+        }
         const totalPages = Math.ceil(data.length / appointmentsPerPage);
 
         if (totalPages <= 1) {
@@ -146,7 +133,7 @@ class Appointments extends Component {
         for (let i = 1; i <= totalPages; i++) {
             paginationItems.push(
                 <li key={i} className={`page-item${currentPage === i ? ' active' : ''}`}>
-                    <a className="page-link" href="#" onClick={() => this.handlePageChange(i)}>
+                    <a className="page-link" href="#" onClick={() => handlePageChange(i)}>
                         {i}
                     </a>
                 </li>
@@ -160,29 +147,12 @@ class Appointments extends Component {
         );
     };
 
-    render() {
-        const { data, loading, error, currentPage, appointmentsPerPage } = this.state;
-
-        if (data !== null){
-            for (let j=0; j < data.length;j++){
-                data[j]["appointment_id"] = j+1;
-            }
-        }
-
-        if (loading) {
-            return <div>Loading...</div>;
-        }
-
-        if (error) {
-            return <div>{error}</div>;
-        }
-
         const indexOfLastAppointments = currentPage * appointmentsPerPage;
         const indexOfFirstAppointments = indexOfLastAppointments - appointmentsPerPage;
-        const currentAppointments = data?.slice(indexOfFirstAppointments, indexOfLastAppointments);
+        const currentAppointments = data?.slice(indexOfFirstAppointments, indexOfLastAppointments) || [];
 
         const columns = [
-            { dataField: 'appointment_id', text: 'SNO', sort: true },
+            { dataField: 'appointment_id', text: 'Appointment ID', sort: true },
             { dataField: 'patient_id', text: 'Patient ID', sort: true },
             { dataField: 'patient__first_name', text: 'Patient Name', formatter: (cell, row) => `${cell} ${row.patient__last_name}` },
 
@@ -214,22 +184,22 @@ class Appointments extends Component {
                                            // pagination={paginationFactory()}
                                         />
                                         </div>
-                                        {this.renderPagination()}
+                                        {renderPagination()}
                                     </CardBody>
                                 </Card>
                             </Col>
                         </Row>
                     </Container>
                 <CSVLink
-                    data={this.state.exportData}
+                    data={exportData}
                     filename={"appointments.csv"}
                     className="hidden"
-                    ref={(r) => (this.csvLink = r)}
+                    ref={(r) => setCsvLink(r)}
                     target="_blank"
                 />
             </React.Fragment>
         );
-    }
+    
 }
 
 export default withRouter(Appointments);

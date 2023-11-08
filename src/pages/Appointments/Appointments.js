@@ -58,7 +58,6 @@ const Appointments = (props)=>{
             console.log(response);
             if (response.status === 200) {
                 const data = await response.data;
-                console.log(data);
                 setData(data);
                 setLoading(false);
                

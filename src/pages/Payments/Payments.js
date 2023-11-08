@@ -337,11 +337,11 @@ const Payments = (props) => {
         if (access && id) {
             setAccessToken(access);
             setClientId(id);
-            getAllPayments();
+            getAllPayments(id,access);
         }
     }, []);
 
-    const getAllPayments = async () => {
+    const getAllPayments = async (client_id,access_token) => {
         const headersPart = {
             headers: {
                 "Content-Type": "application/json",

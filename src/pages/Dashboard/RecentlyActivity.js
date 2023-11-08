@@ -1,24 +1,21 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Card, CardBody, Col, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 
 //Simple bar
 import SimpleBar from "simplebar-react";
 
-class RecentlyActivity extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            menu: false,
-        }
-    }
+const RecentlyActivity  = () =>{
+    
+    const [menu,setMenu] = useState(false);
 
-    render() {
+
+ 
         return (
             <React.Fragment>
                 <Col lg={4}>
                     <Card>
                         <CardBody>
-                            <Dropdown className="float-end" isOpen={this.state.menu} toggle={() => this.setState({ menu: !this.state.menu })}>
+                            <Dropdown className="float-end" isOpen={menu} toggle={() => setMenu(!menu)}>
                                 <DropdownToggle tag="i" className="darrow-none card-drop" aria-expanded="false">
                                     <i className="mdi mdi-dots-vertical"></i>
                                 </DropdownToggle>
@@ -157,6 +154,6 @@ class RecentlyActivity extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default RecentlyActivity;

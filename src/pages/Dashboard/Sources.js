@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Card, CardBody, Col, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Table } from "reactstrap";
 import { Link } from "react-router-dom";
 
@@ -9,21 +9,18 @@ import img3 from "../../assets/images/companies/img-3.png";
 
 import { SpakChart1, SpakChart2, SpakChart3 } from './Charts'
 
-class Sources extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            menu: false,
-        }
-    }
+const Sources = () =>{
+    
+    const [menu,setMenu] = useState(false);
 
-    render() {
+
+    
         return (
             <React.Fragment>
                 <Col lg={4}>
                     <Card>
                         <CardBody>
-                            <Dropdown className="float-end" isOpen={this.state.menu} toggle={() => this.setState({ menu: !this.state.menu })} >
+                            <Dropdown className="float-end" isOpen={menu} toggle={() => setMenu(!menu)} >
                                 <DropdownToggle tag="i" className="arrow-none card-drop">
                                     <i className="mdi mdi-dots-vertical"></i>
                                 </DropdownToggle>
@@ -127,6 +124,6 @@ class Sources extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default Sources;
