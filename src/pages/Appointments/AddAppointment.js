@@ -1,13 +1,11 @@
-import React, { Component } from "react";
+ import React, { useState,useEffect } from "react";
 import Autosuggest from 'react-autosuggest';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 import { Row, Col, Card, CardBody, Button, TabContent, TabPane, NavItem, NavLink, Label, Input, Form, Progress, Container } from "reactstrap";
 import classnames from 'classnames';
 import { Link } from "react-router-dom";
-import Breadcrumbs from '../../components/Common/Breadcrumb';
-import DatePicker from 'react-datepicker';
+import Breadcrumbs from '../../components/Common/Breadcrumb'
 import 'react-datepicker/dist/react-datepicker.css';
 import { ClipLoader } from "react-spinners";
 import { css } from "@emotion/react";
@@ -48,10 +46,9 @@ const customStyles = {
     backgroundColor: "#f0f0f0",
   },
 };
-class AddAppointment extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
+
+const AddAppointment = (props)=>{
+    const [formData,setFormData] = useState({
       breadcrumbItems: [
         { title: "Forms", link: "#" },
         { title: "Form Wizard", link: "#" },
@@ -74,32 +71,29 @@ class AddAppointment extends Component {
       client_id: "",
       access_token: "",
       isLoading: false, // Add isLoading state
+    })
+     
 
-    };
-  }
 
-  async componentDidMount() {
-    // Load client_id from local storage
-    const id = JSON.parse(localStorage.getItem('client_id'));
-    //const access = JSON.parse(localStorage.getItem('access_token'));
 
-    if (id) {
-      // Set client_id and client in the state using a single setState call
-      await new Promise((resolve) => {
-        this.setState({ access_token: JSON.parse(localStorage.getItem('access_token')) });
-
-        this.setState({ client_id: id, client: id }, resolve);
-      });
-
-      // After setting the state, fetch data as needed
-      console.log("hiii" + this.state.access_token);
-
-      await this.fetchPatientSuggestions();
-      await this.fetchDoctorSuggestions();
+   useEffect(()=>{
+    const fetchData = async()=>{
+      const id = JSON.parse(localStorage.getItem('client_id'));
+      const access = JSON.parse(localStorage.getItem('access_token'));
+      if (id){
+      setFormData(prevState=>({...prevState,client_id:id,access_token:access}));
     }
-  }
+      
+      await fetchPatientSuggestions();
+      await fetchDoctorSuggestions();
+    }
+    fetchData();
+  },[])
+   
 
-  formatDate(dateString) {
+   
+
+  const formatDate = (dateString) =>{
     const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -107,25 +101,28 @@ class AddAppointment extends Component {
     return `${year}-${month}-${day}`;
   }
 
-  handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Special handling for date_of_birth to format it correctly
     if (name === 'appointment_date') {
-      const formattedDate = this.formatDate(value);
-      this.setState({
+      const formattedDate = formatDate(value);
+      setFormData(prevState=>({
+        ...prevState,
         appointment_date: formattedDate,
-      });
+      }));
     } else {
-      this.setState({
+      setFormData(prevState=>({
+        ...prevState,
         [name]: value,
-      });
+      }));
     }
   };
 
+  
 
-  validateCurrentTab = () => {
-    const { activeTabProgress, patient, doctor, appointment_date, start_time, end_time } = this.state;
+  const validateCurrentTab = () => {
+    const { activeTabProgress, patient, doctor, appointment_date, start_time, end_time } = formData;
 
     if (activeTabProgress === 1) {
       return !!patient; // Check if patient field is filled
@@ -141,12 +138,12 @@ class AddAppointment extends Component {
   }
 
   // Function to fetch patient suggestions from the API
-  async fetchPatientSuggestions() {
-    const { client_id } = this.state;
+  const fetchPatientSuggestions = async()=> {
+    const { client_id,access_token } = formData;
     const headersPart = {
       headers: {
         "Content-Type": "application/json",
-        'Authorization': `Bearer ${this.state.access_token}`,
+        'Authorization': `Bearer ${access_token}`,
       }
     }
 
@@ -162,7 +159,7 @@ class AddAppointment extends Component {
           id: result.patient_id,
         }));
 
-        this.setState({ patientData: patientSuggestion, patientSuggestions: patientSuggestion });
+        setFormData(prevState=>({...prevState, patientData: patientSuggestion, patientSuggestions: patientSuggestion }));
       } else {
         console.error("Error:", response.statusText);
       }
@@ -172,20 +169,21 @@ class AddAppointment extends Component {
   }
 
   // Replace fetchDoctorSuggestions with Axios
-  async fetchDoctorSuggestions() {
-    const { client_id } = this.state;
+  const fetchDoctorSuggestions = async()=> {
+    const { client_id,access_token } = formData;
     const headersPart = {
       headers: {
         "Content-Type": "application/json",
-        'Authorization': `Bearer ${this.state.access_token}`,
+        'Authorization': `Bearer ${access_token}`,
       }
     }
 
     try {
       const response = await drfGetDoctorSuggestionsDetails({ client_id }, headersPart);
       
-      const data = response.data;
+      
       if (response.status === 200) {
+        const data = response.data;
         const doctorSuggestion = data.Data.map((result) => ({
           email: result.email,
           firstName: result.first_name,
@@ -193,7 +191,7 @@ class AddAppointment extends Component {
           id: result.doctor_id,
         }));
 
-        this.setState({ doctorData: doctorSuggestion, doctorSuggestions: doctorSuggestion });
+        setFormData(prevState=>({...prevState, doctorData: doctorSuggestion, doctorSuggestions: doctorSuggestion }));
       }
     } catch (error) {
       console.error("Error:", error);
@@ -204,37 +202,39 @@ class AddAppointment extends Component {
   //  handlePatientInputChange = (e, { newValue }) => {
   //   this.setState({ patient: newValue });
   // };
-  handlePatientInputChange = (e, { newValue }) => {
-    this.setState({ patient: newValue });
+  const handlePatientInputChange = (e, { newValue }) => {
+   
+    setFormData(prevState=>({...prevState, patient: newValue }));
 
     // Check if the input is empty
     if (!newValue) {
       // Reset patientSuggestions to the original patientData when input is cleared
-      this.setState({ patientSuggestions: this.state.patientData });
+      setFormData(prevState=>({...prevState ,patientSuggestions: prevState.patientData }));
     } else {
       // Filter suggestions from the permanent patientData based on the input
-      const suggestions = this.filterPatientData(newValue);
-      this.setState({ patientSuggestions: suggestions });
+      const suggestions = filterPatientData(newValue);
+      setFormData(prevState=>({...prevState, patientSuggestions: suggestions }));
     }
   };
-  handleDoctorInputChange = (e, { newValue }) => {
-    this.setState({ doctor: newValue });
+  
+  const handleDoctorInputChange = (e, { newValue }) => {
+    setFormData(prevState=>({ ...prevState,doctor: newValue }));
 
     // Check if the input is empty
     if (!newValue) {
       // Reset patientSuggestions to the original patientData when input is cleared
-      this.setState({ doctorSuggestions: this.state.doctorData });
+      setFormData(prevState=>({...prevState, doctorSuggestions:prevState.doctorData }));
     } else {
       // Filter suggestions from the permanent patientData based on the input
-      const suggestions = this.filterDoctorData(newValue);
-      this.setState({ doctorSuggestions: suggestions });
+      const suggestions = filterDoctorData(newValue);
+      setFormData(prevState=>({...prevState,doctorSuggestions: suggestions }));
     }
   };
 
 
   // Define a function to filter patientData based on user input
-  filterPatientData = (inputValue) => {
-    const { patientData } = this.state;
+  const filterPatientData = (inputValue) => {
+    const { patientData } = formData;
     const inputValueLower = inputValue.toLowerCase();
 
     return patientData.filter((suggestion) =>
@@ -244,8 +244,9 @@ class AddAppointment extends Component {
       (suggestion.id?.toString() || '').includes(inputValueLower)
     );
   };
-  filterDoctorData = (inputValue) => {
-    const { doctorData } = this.state;
+
+  const filterDoctorData = (inputValue) => {
+    const { doctorData } = formData;
     const inputValueLower = inputValue.toLowerCase();
 
     return doctorData.filter((suggestion) =>
@@ -256,15 +257,15 @@ class AddAppointment extends Component {
     );
   };
 
-  handleSubmit = async(e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    const { patient, doctor, appointment_date, start_time, end_time, client } = this.state;
-    const acces = this.state.access_token;
+    const { patient, doctor, appointment_date, start_time, end_time, client,access_token} = formData;
+ 
 
     const patientNumber = parseInt(patient, 10);
     const doctorNumber = parseInt(doctor, 10);
 
-    const formData = {
+    const requestFormData = {
       patient: patientNumber,
       doctor: doctorNumber,
       appointment_date,
@@ -273,110 +274,110 @@ class AddAppointment extends Component {
       client,
     };
 
-    this.setState({ isLoading: true }); // Start loading
+    setFormData(prevState=>({ ...prevState,isLoading: true })); // Start loading
 
     const headersPart =  {
       headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${acces}`
+      'Authorization': `Bearer ${access_token}`
     }
   }
 
     try {
-      const response = await drfAddAppointment(formData,headersPart);
+      const response = await drfAddAppointment(requestFormData,headersPart);
 
       const data = response.data;
-
-
-      this.props.history.push("/appointments");
-      toast.success(`Appointment booked successfully.`, {
+      if (response.status === 200){
+        props.history.replace("/appointments");
+        toast.success(`Appointment booked successfully.`, {
         autoClose: 1000, // Duration in milliseconds (e.g., 3000ms = 3 seconds)
       });
-
-
+      }
     } catch (error) {
       toast.error("Appointment booking failed"); // Use toast for error notification
     } finally {
-      this.setState({ isLoading: false }); // Stop loading
+      setFormData(prevState=>({ ...prevState,isLoading: false })); // Stop loading
     }
   }
 
 
-  handleChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
-  };
+ 
 
-  toggleTab(tab) {
-    if (this.state.activeTab !== tab) {
+  const toggleTab = (tab) =>{
+    if (formData.activeTab !== tab) {
       if (tab >= 1 && tab <= 4) {
-        this.setState({
+        setFormData(prevState=>({
+          ...prevState,
           activeTab: tab
-        });
+        }));
       }
     }
   }
 
-  toggleTabProgress(tab) {
-    if (tab > this.state.activeTabProgress) { // Only validate when moving forward
+  const toggleTabProgress = (tab) =>{
+    if (tab > formData.activeTabProgress) { // Only validate when moving forward
       // Check if validation passes before changing the active tab
-      if (this.validateCurrentTab()) {
-        if (this.state.activeTabProgress !== tab) {
+      if (validateCurrentTab()) {
+        if (formData.activeTabProgress !== tab) {
           if (tab >= 1 && tab <= 4) {
-            this.setState({
+            setFormData(prevState=>({
+              ...prevState,
               activeTabProgress: tab
-            });
+            }));
 
-            if (tab === 1) { this.setState({ progressValue: 25 }) }
-            if (tab === 2) { this.setState({ progressValue: 50 }) }
-            if (tab === 3) { this.setState({ progressValue: 75 }) }
-            if (tab === 4) { this.setState({ progressValue: 100 }) }
+            if (tab === 1) { setFormData({ progressValue: 25 }) }
+            if (tab === 2) { setFormData({ progressValue: 50 }) }
+            if (tab === 3) { setFormData({ progressValue: 75 }) }
+            if (tab === 4) { setFormData({ progressValue: 100 }) }
           }
         }
       }
     } else { // Allow moving back to previous tabs without validation
-      if (this.state.activeTabProgress !== tab) {
+      if (formData.activeTabProgress !== tab) {
         if (tab >= 1 && tab <= 4) {
-          this.setState({
+          setFormData(prevState=>({
+            ...prevState,
             activeTabProgress: tab
-          });
+          }));
 
-          if (tab === 1) { this.setState({ progressValue: 25 }) }
-          if (tab === 2) { this.setState({ progressValue: 50 }) }
-          if (tab === 3) { this.setState({ progressValue: 75 }) }
-          if (tab === 4) { this.setState({ progressValue: 100 }) }
+          if (tab === 1) { setFormData({ progressValue: 25 }) }
+          if (tab === 2) { setFormData({ progressValue: 50 }) }
+          if (tab === 3) { setFormData({ progressValue: 75 }) }
+          if (tab === 4) { setFormData({ progressValue: 100 }) }
         }
       }
     }
   }
 
-  getSuggestionValue = (suggestion) => {
+  const getSuggestionValue = (suggestion) => {
     return `${suggestion.id} ${suggestion.firstName} ${suggestion.lastName}`;
   };
 
-  renderSuggestion = (suggestion) => (
+  const renderSuggestion = (suggestion) => (
     <div>
       {suggestion.id} {suggestion.firstName} {suggestion.lastName} ({suggestion.email})
     </div>
   );
 
 
-  onSuggestionsFetchRequested = ({ value }) => {
-    this.setState({
-      patientSuggestions: this.getSuggestions(value),
-    });
+ const onSuggestionsFetchRequested = ({ value }) => {
+      setFormData(prevState=>({
+       ...prevState,
+      patientSuggestions: getSuggestions(value),
+    }));
   };
 
-  onSuggestionsClearRequested = () => {
-    this.setState({
-      patientSuggestions: this.state.patientData, // Reset to the original patient data
-    });
+  const onSuggestionsClearRequested = () => {
+    setFormData(prevState=>({
+      ...prevState,
+      patientSuggestions: prevState.patientData, // Reset to the original patient data
+    }));
   };
-  getSuggestions = (value) => {
+
+  const getSuggestions = (value) => {
     const inputValue = value.trim().toLowerCase();
     const inputLength = inputValue.length;
-    const { patientSuggestions } = this.state;
+    const { patientSuggestions }= formData;
 
     return inputLength === 0
       ? []
@@ -389,11 +390,11 @@ class AddAppointment extends Component {
   };
 
 
-  getDoctorSuggestionValue = (suggestion) => {
+  const getDoctorSuggestionValue = (suggestion) => {
     return `${suggestion.id} ${suggestion.firstName} ${suggestion.lastName}`;
   };
 
-  renderDoctorSuggestion = (suggestion) => (
+  const renderDoctorSuggestion = (suggestion) => (
     <div
 
     >
@@ -402,21 +403,24 @@ class AddAppointment extends Component {
   );
 
 
-  onDoctorSuggestionsFetchRequested = ({ value }) => {
-    this.setState({
-      doctorSuggestions: this.getDoctorSuggestions(value),
-    });
+  const onDoctorSuggestionsFetchRequested = ({ value }) => {
+    setFormData(prevState=>({
+      ...prevState,
+      doctorSuggestions: getDoctorSuggestions(value),
+    }));
   };
 
-  onDoctorSuggestionsClearRequested = () => {
-    this.setState({
-      doctorSuggestions: this.state.doctorData, // Reset to the original patient data
-    });
+  const onDoctorSuggestionsClearRequested = () => {
+    setFormData(prevState=>({
+      ...prevState,
+      doctorSuggestions: prevState.doctorData, // Reset to the original patient data
+    }));
   };
-  getDoctorSuggestions = (value) => {
+
+  const getDoctorSuggestions = (value) => {
     const inputValue = value.trim().toLowerCase();
     const inputLength = inputValue.length;
-    const { doctorSuggestions } = this.state;
+    const { doctorSuggestions } = formData;
 
     return inputLength === 0
       ? []
@@ -429,14 +433,14 @@ class AddAppointment extends Component {
   };
 
 
-  render() {
-    const { patient, doctor, appointment_date, start_time, end_time, patientSuggestions, doctorSuggestions } = this.state;
+ 
+    const { patient, doctor, appointment_date, start_time, end_time, patientSuggestions, doctorSuggestions } = formData;
 
     return (
       <React.Fragment>
         <div className="page-content">
           <Container fluid={true}>
-            <Breadcrumbs title="ADD APPOINTMENT" breadcrumbItems={this.state.breadcrumbItems} />
+            <Breadcrumbs title="ADD APPOINTMENT" breadcrumbItems={formData.breadcrumbItems} />
             <Row>
               <Col lg="12">
                 <Card>
@@ -444,25 +448,25 @@ class AddAppointment extends Component {
                     <div id="progrss-wizard" className="twitter-bs-wizard">
                       <ul className="twitter-bs-wizard-nav nav-justified nav nav-pills">
                         <NavItem>
-                          <NavLink className={classnames({ active: this.state.activeTabProgress === 1 })} onClick={() => { this.toggleTabProgress(1); }}>
+                          <NavLink className={classnames({ active: formData.activeTabProgress === 1 })} onClick={() => {toggleTabProgress(1); }}>
                             <span className="step-number">01</span>
                             <span className="step-title">Patient Details</span>
                           </NavLink>
                         </NavItem>
                         <NavItem>
-                          <NavLink className={classnames({ active: this.state.activeTabProgress === 2 })} onClick={() => { this.toggleTabProgress(2); }}>
+                          <NavLink className={classnames({ active: formData.activeTabProgress === 2 })} onClick={() => {toggleTabProgress(2); }}>
                             <span className="step-number">02</span>
                             <span className="step-title">Doctor Details</span>
                           </NavLink>
                         </NavItem>
                         <NavItem>
-                          <NavLink className={classnames({ active: this.state.activeTabProgress === 3 })} onClick={() => { this.toggleTabProgress(3); }}>
+                          <NavLink className={classnames({ active: formData.activeTabProgress === 3 })} onClick={() => {toggleTabProgress(3); }}>
                             <span className="step-number">03</span>
                             <span className="step-title">Set Appointment</span>
                           </NavLink>
                         </NavItem>
                         <NavItem>
-                          <NavLink className={classnames({ active: this.state.activeTabProgress === 4 })} onClick={() => { this.toggleTabProgress(4); }}>
+                          <NavLink className={classnames({ active: formData.activeTabProgress === 4 })} onClick={() => { toggleTabProgress(4); }}>
                             <span className="step-number">04</span>
                             <span className="step-title">Confirm Appointment</span>
                           </NavLink>
@@ -470,9 +474,9 @@ class AddAppointment extends Component {
                       </ul>
 
                       <div id="bar" className="mt-4">
-                        <Progress color="success" striped animated value={this.state.progressValue} />
+                        <Progress color="success" striped animated value={formData.progressValue} />
                       </div>
-                      <TabContent activeTab={this.state.activeTabProgress} className="twitter-bs-wizard-tab-content">
+                      <TabContent activeTab={formData.activeTabProgress} className="twitter-bs-wizard-tab-content">
                         <TabPane tabId={1}>
                           <Form>
                             <Row>
@@ -481,14 +485,14 @@ class AddAppointment extends Component {
                                   <Label className="form-label" htmlFor="basicpill-firstname-input1">Patient ID And Name</Label>
                                   <Autosuggest
                                     suggestions={patientSuggestions}
-                                    onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-                                    onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-                                    getSuggestionValue={this.getSuggestionValue}
-                                    renderSuggestion={this.renderSuggestion}
+                                    onSuggestionsFetchRequested={onSuggestionsFetchRequested}
+                                    onSuggestionsClearRequested={onSuggestionsClearRequested}
+                                    getSuggestionValue={getSuggestionValue}
+                                    renderSuggestion={renderSuggestion}
                                     inputProps={{
                                       placeholder: 'Patient ID Name',
                                       value: patient,
-                                      onChange: this.handlePatientInputChange,
+                                      onChange:handlePatientInputChange,
                                       name: 'patient',
                                       className: 'form-control', // Apply Bootstrap form-control class here
                                       required: true,
@@ -510,14 +514,14 @@ class AddAppointment extends Component {
                                     <Label className="form-label" htmlFor="basicpill-pancard-input5">Doctor ID And Name </Label>
                                     <Autosuggest
                                       suggestions={doctorSuggestions}
-                                      onSuggestionsFetchRequested={this.onDoctorSuggestionsFetchRequested}
-                                      onSuggestionsClearRequested={this.onDoctorSuggestionsClearRequested}
-                                      getSuggestionValue={this.getDoctorSuggestionValue}
-                                      renderSuggestion={this.renderDoctorSuggestion}
+                                      onSuggestionsFetchRequested={onDoctorSuggestionsFetchRequested}
+                                      onSuggestionsClearRequested={onDoctorSuggestionsClearRequested}
+                                      getSuggestionValue={getDoctorSuggestionValue}
+                                      renderSuggestion={renderDoctorSuggestion}
                                       inputProps={{
                                         placeholder: 'Doctor ID Name',
                                         value: doctor,
-                                        onChange: this.handleDoctorInputChange,
+                                        onChange: handleDoctorInputChange,
                                         name: 'doctor',
                                         className: 'form-control', // Apply Bootstrap form-control class here
                                         required: true,
@@ -544,7 +548,7 @@ class AddAppointment extends Component {
                                       placeholderText="Appointment Date"
                                       name="appointment_date"
                                       value={appointment_date} // Use the formatted date
-                                      onChange={this.handleChange}
+                                      onChange={handleChange}
 
                                       required
                                     />
@@ -557,13 +561,13 @@ class AddAppointment extends Component {
                                 <Col lg="4">
                                   <div className="mb-3">
                                     <Label className="form-label" htmlFor="basicpill-namecard-input11">Start Time</Label>
-                                    <Input type="time" className="form-control" id="basicpill-namecard-input11" value={start_time} name="start_time" placeholder="Start Time" onChange={this.handleChange} required />
+                                    <Input type="time" className="form-control" id="basicpill-namecard-input11" value={start_time} name="start_time" placeholder="Start Time" onChange={handleChange} required />
                                   </div>
                                 </Col>
                                 <Col lg="4">
                                   <div className="mb-3">
                                     <Label className="form-label" htmlFor="basicpill-namecard-input11">End Time</Label>
-                                    <Input type="time" className="form-control" id="basicpill-namecard-input11" value={end_time} name="end_time" placeholder="End Time" onChange={this.handleChange} required />
+                                    <Input type="time" className="form-control" id="basicpill-namecard-input11" value={end_time} name="end_time" placeholder="End Time" onChange={handleChange} required />
                                   </div>
                                 </Col>
                               </Row>
@@ -575,13 +579,13 @@ class AddAppointment extends Component {
                             <Col lg="6">
                               <div className="text-center">
                                 <div className="mb-4">
-                                  <i className="mdi mdi-check-circle-outline text-success display-4" onClick={this.handleSubmit}></i>
+                                  <i className="mdi mdi-check-circle-outline text-success display-4" onClick={handleSubmit}></i>
                                 </div>
-                                {this.state.isLoading ? (
-                                  <ClipLoader color={"#1CBB8C"} loading={this.state.isLoading} css={override} size={40} />
+                                {formData.isLoading ? (
+                                  <ClipLoader color={"#1CBB8C"} loading={formData.isLoading} css={override} size={40} />
                                 ) : (
                                   <div>
-                                    <Button color="primary" onClick={this.handleSubmit}>Confirm Details</Button>
+                                    <Button color="primary" onClick={handleSubmit}>Confirm Details</Button>
                                   </div>
                                 )}
                               </div>
@@ -590,8 +594,8 @@ class AddAppointment extends Component {
                         </TabPane>
                       </TabContent>
                       <ul className="pager wizard twitter-bs-wizard-pager-link">
-                        <li className={this.state.activeTabProgress === 1 ? "previous disabled" : "previous"}><Link to="#" onClick={() => { this.toggleTabProgress(this.state.activeTabProgress - 1); }}>Previous</Link></li>
-                        <li className={this.state.activeTabProgress === 4 ? "next disabled" : "next"}><Link to="#" onClick={() => { this.toggleTabProgress(this.state.activeTabProgress + 1); }}>Next</Link></li>
+                        <li className={formData.activeTabProgress === 1 ? "previous disabled" : "previous"}><Link to="#" onClick={() => {toggleTabProgress(formData.activeTabProgress - 1); }}>Previous</Link></li>
+                        <li className={formData.activeTabProgress === 4 ? "next disabled" : "next"}><Link to="#" onClick={() => { toggleTabProgress(formData.activeTabProgress + 1); }}>Next</Link></li>
                       </ul>
                     </div>
                   </CardBody>
@@ -603,6 +607,8 @@ class AddAppointment extends Component {
       </React.Fragment>
     );
   }
-}
 
-export default AddAppointment;
+
+export default AddAppointment; 
+
+

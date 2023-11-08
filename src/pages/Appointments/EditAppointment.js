@@ -1,44 +1,46 @@
-import React, { Component } from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
+import React, { useState,useEffect } from "react";
+import { Row, Col, Card, CardBody,Button, Label, Input, Container,Form } from "reactstrap";
 import { toast } from 'react-toastify';
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 import { withRouter } from 'react-router-dom';
-
-//Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import {drfUpdateAppointment} from "../../drfServer";
-class EditAppointment extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      breadcrumbItems: [
+
+const EditAppointment = (props) =>{
+
+  const [formData,setFormData] = useState({
+        breadcrumbItems: [
         { title: "Forms", link: "#" },
         { title: "Form Mask", link: "#" },
       ],
-      appointment: this.props.location.state.appointment,
-      patient: this.props.location.state.appointment.patient_id,
-      doctor: this.props.location.state.appointment.doctor_id,
-      appointment_date: this.props.location.state.appointment.appointment_date,
-      start_time: this.props.location.state.appointment.start_time,
-      end_time: this.props.location.state.appointment.end_time,
-      appointment_id: this.props.location.state.appointment.appointment_id,
+      appointment: props.location.state.appointment,
+      patient: props.location.state.appointment.patient_id,
+      doctor: props.location.state.appointment.doctor_id,
+      appointment_date: props.location.state.appointment.appointment_date,
+      start_time: props.location.state.appointment.start_time,
+      end_time: props.location.state.appointment.end_time,
+      appointment_id: props.location.state.appointment.appointment_id,
       client_id: "",
       access_token: "",
-    };
-  }
-  componentDidMount() {
-    // Load client_id from local storage and set it in the state
-    const access = JSON.parse(localStorage.getItem('access_token'));
-    const id = JSON.parse(localStorage.getItem('client_id'));
-    if (access) {
-      this.setState({ access_token: access });
-      // console.log("hello" + this.state.access_token);
-      this.setState({ client_id: id });
-    }
+    });
 
-  }
-  formatDate(dateString) {
+    useEffect(() => {
+      const fetchData = async () =>{
+        
+          const id = JSON.parse(localStorage.getItem('client_id'));
+          const access = JSON.parse(localStorage.getItem('access_token'));
+          if (id){
+            setFormData(prevState=>({...prevState,client_id:id,access_token:access}));
+          }
+      }
+      fetchData();
+    },[]);  
+  
+  
+     
+     
+  
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -46,26 +48,27 @@ class EditAppointment extends Component {
     return `${year}-${month}-${day}`;
   }
 
-  handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Special handling for date_of_birth to format it correctly
-    if (name === 'date_of_birth') {
-      const formattedDate = this.formatDate(value);
-      this.setState({
+  
+    if (name === 'appointment_date') {
+      const formattedDate = formatDate(value);
+      setFormData(prevState => ({
+        ...prevState,
         appointment_date: formattedDate,
-      });
+      }));
     } else {
-      this.setState({
+      setFormData(prevState => ({
+        ...prevState,
         [name]: value,
-      });
+      }));
     }
   };
+  
 
 
 
-
-  handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const {
       patient,
@@ -76,9 +79,9 @@ class EditAppointment extends Component {
       appointment_id,
       client_id,
       access_token,
-    } = this.state;
+    } = formData;
 
-    const formData = {
+    const requestFormData = {
       client_id,
       appointment_id,
       patient,
@@ -96,14 +99,15 @@ class EditAppointment extends Component {
     }
 
     try {
-      const response = await axios.put(formData,headersPart);
+      const response = await drfUpdateAppointment(requestFormData,headersPart);
 
       const data = response.data;
 
       if (data.message) {
         toast.success(`${data.message}`, {
           autoClose: 1000, // Duration in milliseconds (e.g., 3000ms = 3 seconds)
-        }); this.props.history.push('/appointments'); // Assuming "/appointments" is the route for the appointments page
+        }); 
+       props.history.replace('/appointments'); // Assuming "/appointments" is the route for the appointments page
       } else {
         toast.error(data.message || "An error occurred while processing your request.");
       }
@@ -113,7 +117,7 @@ class EditAppointment extends Component {
     }
   };
 
-  render() {
+  
     const {
       patient,
       doctor,
@@ -121,22 +125,22 @@ class EditAppointment extends Component {
       start_time,
       end_time,
 
-    } = this.state;
+    } = formData;
     return (
       <React.Fragment>
         <div className="page-content">
           <Container fluid={true}>
-            <Breadcrumbs title="Edit Appointment" breadcrumbItems={this.state.breadcrumbItems} />
+            <Breadcrumbs title="Edit Appointment" breadcrumbItems={formData.breadcrumbItems} />
             <Row>
               <Col lg={12}>
                 <Card>
                   <CardBody>
-                    <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={this.handleSubmit}>
+                    <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={handleSubmit}>
                       <Row>
                         <Col md="4">
                           <div className="mb-3 position-relative">
                             <Label className="form-label" htmlFor="validationTooltip01">Patient ID</Label>
-                            <Input type="text" className="form-control" id="validationTooltip01" value={patient} name="patient" placeholder="Patient ID" onChange={this.handleChange} />
+                            <Input type="text" className="form-control" id="validationTooltip01" value={patient} name="patient" placeholder="Patient ID" onChange={handleChange} />
 
                             <div className="valid-tooltip">
                               Looks good!
@@ -146,7 +150,7 @@ class EditAppointment extends Component {
                         <Col md="4">
                           <div className="mb-3 position-relative">
                             <Label className="form-label" htmlFor="validationTooltip01">Doctor ID</Label>
-                            <Input type="text" value={doctor} className="form-control" id="validationTooltip01" name="doctor" placeholder="Doctor ID" onChange={this.handleChange} />
+                            <Input type="text" value={doctor} className="form-control" id="validationTooltip01" name="doctor" placeholder="Doctor ID" onChange={handleChange} />
 
                             <div className="valid-tooltip">
                               Looks good!
@@ -162,8 +166,7 @@ class EditAppointment extends Component {
                               placeholderText="Date Of Birth"
                               name="appointment_date"
                               value={appointment_date} // Use the formatted date
-                              onChange={this.handleChange}
-
+                              onChange={handleChange}
                               required
                             />
                             <div className="valid-tooltip">
@@ -180,7 +183,7 @@ class EditAppointment extends Component {
                         <Col md="6">
                           <div className="mb-3 position-relative">
                             <Label className="form-label" htmlFor="validationTooltip02">Appointment Start Time</Label>
-                            <Input type="time" value={start_time} className="form-control" id="validationTooltip02" name="start_time" placeholder="Appointment Start Time" onChange={this.handleChange} />
+                            <Input type="time" value={start_time} className="form-control" id="validationTooltip02" name="start_time" placeholder="Appointment Start Time" onChange={handleChange} />
                             <div className="valid-tooltip">
                               Looks good!
                             </div>
@@ -190,7 +193,7 @@ class EditAppointment extends Component {
                         <Col md="6">
                           <div className="mb-3 position-relative">
                             <Label className="form-label" htmlFor="validationTooltip04">Appointment End Time</Label>
-                            <Input type="time" value={end_time} className="form-control" id="validationTooltip04" name="end_time" placeholder="Appointment End time" onChange={this.handleChange} />
+                            <Input type="time" value={end_time} className="form-control" id="validationTooltip04" name="end_time" placeholder="Appointment End time" onChange={handleChange} />
                             <div className="valid-tooltip">
                               Looks good!
                             </div>
@@ -213,6 +216,6 @@ class EditAppointment extends Component {
       </React.Fragment>
     );
   }
-}
+
 
 export default withRouter(EditAppointment);

@@ -1,45 +1,52 @@
-import React, { Component } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Col, Card, CardBody } from 'reactstrap';
+import {drfGetHospitalDetails} from "../../drfServer"
+//import { setSubmitFailed } from 'redux-form';
 
-class Counter3 extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
+const Counter3 = ()=>{
+ 
+    const [state,setState] = useState({
       hospitalList: [],
       client_id: '',
       access_token: '',
       isLoading: true, // Add a loading state
-    };
-  }
+    });
+  
 
-  async componentDidMount() {
+  useEffect(()=>{
+
+    const fetchData = async()=>{
     const access = JSON.parse(localStorage.getItem('access_token'));
-
-    if (access) {
-      this.setState({ access_token: access });
+    setState(prevState=>({...prevState,access_token:access}));
+    const headersPart = {
+       headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${access}`,
     }
-
+  }
     try {
-      const hospitalResponse = await fetch('/Hospital/list/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${access}`,
-        },
-      });
+      const hospitalResponse = await drfGetHospitalDetails(headersPart);
 
       if (hospitalResponse.ok) {
-        const hospitalData = await hospitalResponse.json();
-        this.setState({ hospitalList: hospitalData, isLoading: false }); // Update isLoading and hospitalList
+        const hospitalData = await hospitalResponse.data;
+        setState(prevState=>({ ...prevState,hospitalList: hospitalData, isLoading: false })); // Update isLoading and hospitalList
       }
+    
     } catch (error) {
       console.error('Error fetching hospital data:', error);
-      this.setState({ isLoading: false }); // Set isLoading to false in case of an error
+      setState(prevState=>({ ...prevState,isLoading: false }));  // set isLoading to false in case of an error
     }
-  }
+    }
+  fetchData();
 
-  render() {
-    const { hospitalList, isLoading } = this.state;
+  },[]);
+  
+   
+   
+
+
+ 
+    const { hospitalList, isLoading } = state;
     const hospitalCount = hospitalList.length;
 
     const reports = [
@@ -72,7 +79,7 @@ class Counter3 extends Component {
       </React.Fragment>
     );
   }
-}
+
 
 
 export default Counter3;

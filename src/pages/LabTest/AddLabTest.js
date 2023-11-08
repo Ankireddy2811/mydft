@@ -1,47 +1,38 @@
-import React, { Component } from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
-//import { toast } from 'react-toastify';
-
+import React, {useEffect, useState } from "react";
+import { Row, Col, Card, CardBody, Button, Label, Input, Container,Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
-
-// Import Breadcrumb
-import Breadcrumbs from '../../components/Common/Breadcrumb';
 import { drfAddLabTest } from "../../drfServer";
 
-class AddLabTest extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            patient: "",
-            doctor: "",
-            test_name:"",
-            test_date:"",
-            results:"",
-            client:"",
-            access_token:"",
+const AddLabTest = ()=> {
 
-        };
-    }
-    componentDidMount() {
-        // Load client_id from local storage and set it in the state
+    const [formData,setFormData] = useState({
+        patient: "",
+        doctor: "",
+        test_name:"",
+        test_date:"",
+        results:"",
+        client:"",
+        access_token:"",
+    })
+   
+        
+    useEffect(()=>{
+        // Load client_id,acces_token from local storage and set it in the formData
         const access = JSON.parse(localStorage.getItem('access_token'));
-
         const client_id = JSON.parse(localStorage.getItem('client_id'));
-        if (client_id) {
-          this.setState({ client: client_id });
-          this.setState({ access_token: access });
-
+        if(client_id){
+            setFormData(prevState=>({...prevState,client:client_id,access_token:access}));
         }
-      }
-    handleChange = (e) => {
-        this.setState({
-            [e.target.name]: e.target.value,
-        });
+
+    },[]); 
+        
+       
+    const handleChange = (e) => {
+        setFormData({...formData,[e.target.name]: e.target.value});
     };
 
-    handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const { 
           patient,
@@ -51,9 +42,9 @@ class AddLabTest extends Component {
           results,
           client,
           access_token,
-        } = this.state;
+        } = formData;
       
-      const formData = {
+      const requestFormData = {
         patient,
         doctor,
         test_name,
@@ -69,10 +60,13 @@ class AddLabTest extends Component {
         }
       }
         try {
-          const response = await drfAddLabTest(formData,headersPart);
+          const response = await drfAddLabTest(requestFormData,headersPart);
       
           if (response.data.message) {
             toast.success(response.data.message);
+          }
+          else {
+            throw new Error('Something went wrong');
           }
         } catch (error) {
           if (error.response && error.response.data && error.response.data.message) {
@@ -84,8 +78,7 @@ class AddLabTest extends Component {
       };
       
 
-    render() {
-        return (
+     return (
             <React.Fragment>
                 <div className="page-content">
                     <Container fluid={true}>
@@ -93,12 +86,12 @@ class AddLabTest extends Component {
                             <Col lg={12}>
                                 <Card>
                                     <CardBody>
-                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={this.handleSubmit}>
+                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={handleSubmit}>
                                             <Row>
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Patient ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" name="patient" placeholder="Patient ID" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip01" name="patient" placeholder="Patient ID" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -107,7 +100,7 @@ class AddLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Doctor ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" name="doctor" placeholder="Doctor ID" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip01" name="doctor" placeholder="Doctor ID" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -120,7 +113,7 @@ class AddLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Test Name</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" name="test_name" placeholder="Test Name" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip02" name="test_name" placeholder="Test Name" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -129,7 +122,7 @@ class AddLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Test Date</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" name="test_date" placeholder="Test Date" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip02" name="test_date" placeholder="Test Date" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -138,17 +131,13 @@ class AddLabTest extends Component {
                                                 <Col md="12">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Results</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" name="results" placeholder="Results" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip02" name="results" placeholder="Results" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
                                                     </div>
                                                 </Col>
-                                               
-                                                
-                                            </Row>
-
-                                            
+                                               </Row>
                                             <Col md="12" className="text-center">
                                                 <Button color="primary" type="submit">Submit form</Button>
                                             </Col>
@@ -162,6 +151,5 @@ class AddLabTest extends Component {
             </React.Fragment>
         );
     }
-}
 
 export default AddLabTest;

@@ -1,18 +1,11 @@
-import React, { Component } from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
-//import { toast } from 'react-toastify';
-
+import React, {useState,useEffect} from "react";
+import { Row, Col, Card, CardBody,  Button, Label, Input, Container, Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
-// Import Breadcrumb
-import Breadcrumbs from '../../components/Common/Breadcrumb';
-import { drfUpdatePrescriptionDetail } from "../../drfServer";
+import { drfUpdatePrescriptionDetail,drfGetSpecificPrescriptionDetails } from "../../drfServer";
 
-class EditPrescriptionDetails extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+const EditPrescriptionDetails = (props)=> {
+   const [formData,setFormData] = useState({
             prescription:"",
             medicine:"",
             dosage:"",
@@ -21,57 +14,57 @@ class EditPrescriptionDetails extends Component {
             client_id:"",
             access_token:"",
 
-        };
-    }
-    async componentDidMount() {
-        const { match } = this.props; // React Router match object
-        const prescription_detail_id = match.params.prescription_detail_id;
-        const access = JSON.parse(localStorage.getItem('access_token'));
-            // Load client_id from local storage and set it in the state
+        });
+    
+    useEffect(()=>{
+        const fetchData = async ()=>{
+            const prescription_detail_id = props.match.params.prescription_detail_id;
+            const access = JSON.parse(localStorage.getItem('access_token'));
             const id = JSON.parse(localStorage.getItem('client_id'));
             if (id) {
-              this.setState({ client_id: id });
-              this.setState({ access_token: access });
-
+                setFormData(prevState => ({ ...prevState, client_id: id, access_token: access }));
+                const headersPart = {
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${access}`
+                    }
+                  };
+            try{
+                const requestFormData = { prescription_detail_id, client_id: id }
+                const response = await drfGetSpecificPrescriptionDetails(requestFormData,headersPart);
+                if (!response.status === 200) {
+                    throw new Error('Network response was not ok.');
+                  } 
+                const data = await response.data;
+                setFormData(prevState=>({
+                    ...prevState,
+                    prescription:data.Data.prescription_id,
+                    medicine:data.Data.medicine_id,
+                    dosage:data.Data.dosage,
+                    frequency: data.Data.frequency,
+                    prescription_detail_id,
+                }));
             }
+            catch (error) {
+                throw new Error(error);
+              }
+        }
+        else {
+            throw new Error("Client ID not found");
+            }
+                
+        }
+        fetchData();
+    },[props]);
+       
           
 
-        try {
-            const response = await fetch(`/PrescriptionDetail/details-By/`,{
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer ${access}`,
+    
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
 
-                },
-                body: JSON.stringify({ prescription_detail_id, client_id: id }),}); // Use the updated client_id);
-            if (!response.ok) {
-                throw new Error("Network response was not ok.");
-            }
-            const data = await response.json();
-            //console.log(data);
-
-            // Update state with fetched doctor data
-            this.setState({
-                prescription:data.Data.prescription_id,
-                medicine:data.Data.medicine_id,
-                dosage:data.Data.dosage,
-                frequency: data.Data.frequency,
-                prescription_detail_id,
-            });
-            // console.log(gender);
-        } catch (error) {
-            console.log(error);
-            // Handle error fetching doctor data
-        }
-    }
-    handleChange = (e) => {
-        this.setState({
-            [e.target.name]: e.target.value,
-        });
-    };
-
-    handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const { 
           prescription,
@@ -81,9 +74,9 @@ class EditPrescriptionDetails extends Component {
           prescription_detail_id,
           client_id,
           access_token,
-        } = this.state;
+        } = formData;
     
-        const formData = {
+        const requestFormData = {
           prescription,
           medicine,
           dosage,
@@ -100,11 +93,11 @@ class EditPrescriptionDetails extends Component {
           }
     
         try {
-          const response = await drfUpdatePrescriptionDetail(formData, headersPart);
+          const response = await drfUpdatePrescriptionDetail(requestFormData, headersPart);
     
           if (response.data.message) {
             toast.success(response.data.message);
-            this.props.history.push('/prescription-details-list'); // Assuming '/prescription-details-list' is the route for the prescription details list page
+            props.history.replace('/prescription-details-list'); // Assuming '/prescription-details-list' is the route for the prescription details list page
           } else {
             toast.error('An error occurred while processing your request.');
           }
@@ -117,12 +110,8 @@ class EditPrescriptionDetails extends Component {
         }
       };
 
-    render() {
-        const { 
-            prescription,
-            medicine,
-            dosage,
-            frequency,} = this.state;
+  
+        const { prescription,medicine,dosage,frequency,} = formData;
         return (
             <React.Fragment>
                 <div className="page-content">
@@ -131,12 +120,12 @@ class EditPrescriptionDetails extends Component {
                             <Col lg={12}>
                                 <Card>
                                     <CardBody>
-                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={this.handleSubmit}>
+                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={handleSubmit}>
                                             <Row>
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Prescription</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" value={prescription} name="prescription" placeholder="Prescription" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip01" value={prescription} name="prescription" placeholder="Prescription" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -145,7 +134,7 @@ class EditPrescriptionDetails extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Medicine</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" value={medicine} name="medicine" placeholder="Medicine" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip01" value={medicine} name="medicine" placeholder="Medicine" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -158,7 +147,7 @@ class EditPrescriptionDetails extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Dosage</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" value={dosage} name="dosage" placeholder="Dosage" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip02" value={dosage} name="dosage" placeholder="Dosage" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -168,7 +157,7 @@ class EditPrescriptionDetails extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip04">Frequency</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip04" value={frequency} name="frequency" placeholder="Frequency" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip04" value={frequency} name="frequency" placeholder="Frequency" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -192,6 +181,6 @@ class EditPrescriptionDetails extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default EditPrescriptionDetails;

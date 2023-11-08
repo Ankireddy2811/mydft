@@ -1,84 +1,90 @@
-import React, { Component } from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
+import React, {useState,useEffect } from "react";
+import { Row, Col, Card, CardBody, Button, Label, Input, Container, Form } from "reactstrap";
 
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
+
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
-// Import Breadcrumb
-import Breadcrumbs from '../../components/Common/Breadcrumb';
-import { drfUpdateLabTest } from "../../drfServer";
-class EditLabTest extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            patient: "",
-            doctor: "",
-            test_name:"",
-            test_date:"",
-            results:"",
-            lab_test_id:"",
-            client_id:"",
-            access_token:"",
 
-        };
-    }
+import { drfUpdateLabTest ,drfGetSpecificLabTestDetails} from "../../drfServer";
 
-    async componentDidMount() {
-        const { match } = this.props; // React Router match object
-        const lab_test_id = match.params.lab_test_id;
-        const access = JSON.parse(localStorage.getItem('access_token'));
+const EditLabTest = ({match,history})=>{
+    const [formData,setFormData]= useState({
+        patient: "",
+        doctor: "",
+        test_name:"",
+        test_date:"",
+        results:"",
+        lab_test_id:"",
+        client_id:"",
+        access_token:"",
 
-            // Load client_id from local storage and set it in the state
+    })
+
+        
+    useEffect(()=>{
+        const fetchData = async()=>{
+            const access = JSON.parse(localStorage.getItem('access_token'));
             const id = JSON.parse(localStorage.getItem('client_id'));
+            const lab_test_id = match.params.lab_test_id;
+            console.log(lab_test_id);
+            console.log(access);
             if (id) {
-              this.setState({ client_id: id });
-              this.setState({ access_token: access });
-
-            }
-          
-
-        try {
-            const response = await fetch(`https://www.iyrajewels.com/LabTest/details-By/`,{
-                method:"POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer ${access}`,
-
-                  },
-                  body: JSON.stringify({ lab_test_id, client_id: id }), // Use the updated client_id
-
-            });
-            if (!response.ok) {
-                throw new Error("Network response was not ok.");
-            }
-            const data = await response.json();
-
-            console.log(data);
-
-            // Update state with fetched doctor data
-            this.setState({
-                patient: data.Data.patient_id,
-                doctor: data.Data.doctor_id,
-                test_date: data.Data.test_date,
-                test_name:data.Data.test_name,
-                results: data.Data.results,
-                lab_test_id:data.Data.lab_test_id,
-            });
-            // console.log(gender);
-        } catch (error) {
-            console.log(error);
-            // Handle error fetching doctor data
+                setFormData(prevState => ({ ...prevState, client_id: id, access_token: access }));
+                const headersPart = {
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${access}`
+                    }
+                  };
+            
+                  const formData = { lab_test_id, client_id: id };
+                  try {
+       
+                    const response = await drfGetSpecificLabTestDetails(formData,headersPart);
+                    
+                   if (!response.status === 200) {
+                     throw new Error('Network response was not ok.');
+                   } 
+                   const LabTestData = await response.data;
+           
+                   if (!LabTestData){
+                     throw new Error("LabTestData data not found in the response");
+                   }
+                 
+                   
+                   setFormData(prevState => ({
+                    ...prevState,
+                    patient:LabTestData.Data.patient_id,
+                    doctor: LabTestData.Data.doctor_id,
+                    test_date:LabTestData.Data.test_date,
+                    test_name:LabTestData.Data.test_name,
+                    results:LabTestData.Data.results,
+                    lab_test_id:LabTestData.Data.lab_test_id,
+                   }));
+                 } catch (error) {
+                   throw new Error(error);
+                 }
+               }
+               else {
+                 throw new Error("Client ID not found");
+                 }
         }
-    }
+        fetchData();
+     
 
-    handleChange = (e) => {
-        this.setState({
+    },[match.params.lab_test_id]);
+
+  
+    const handleChange = (e) => {
+        setFormData(prevState=>({
+            ...prevState,
             [e.target.name]: e.target.value,
-        });
+        }));
     };
 
-    handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(formData);
         const { 
           patient,
           doctor,
@@ -88,9 +94,10 @@ class EditLabTest extends Component {
           lab_test_id,
           client_id,
           access_token,
-        } = this.state;
+        } = formData;
 
-        const formData = {
+
+        const requestFormData = {
             patient,
             doctor,
             test_name,
@@ -99,22 +106,24 @@ class EditLabTest extends Component {
             lab_test_id,
             client_id,
           }
+
+          console.log(access_token)
     
           const headersPart = {
             headers: {
               "Content-Type": "application/json",
-              'Authorization': `Bearer ${access_token}`
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjk5MjAzNjE1LCJpYXQiOjE2OTc0NzU2MTUsImp0aSI6ImE5NDVlMWFjMmU4YjQwYWU4YjE2YTk5YzI3ZmVkNWYzIiwiY2xpZW50X2lkIjoiSElEMDAwMTkifQ.mIKsLB_pFagl43MNHakfpU9HD7fRRIoHs5j15mdWEoI`
             }
           }
           
         try {
-          const response = await drfUpdateLabTest(formData,headersPart);
+          const response = await drfUpdateLabTest(requestFormData,headersPart);
       
           const data = response.data;
       
           if (data.message) {
             toast.success(`${data.message}`);
-            this.props.history.push('/lab-test-list');
+            history.replace('/lab-test-list');
           } else {
             toast.error(data.message || "An error occurred while processing your request.");
           }
@@ -125,14 +134,14 @@ class EditLabTest extends Component {
       };
       
 
-    render() {
+    
         const { 
             patient,
             doctor,
             test_name,
             test_date,
             results,
-        } = this.state;
+        } = formData;
         
         return (
             <React.Fragment>
@@ -142,12 +151,12 @@ class EditLabTest extends Component {
                             <Col lg={12}>
                                 <Card>
                                     <CardBody>
-                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={this.handleSubmit}>
+                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={handleSubmit}>
                                             <Row>
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Patient ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" value={patient} name="patient" placeholder="Patient ID" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip01" value={patient} name="patient" placeholder="Patient ID" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -156,7 +165,7 @@ class EditLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Doctor ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" value={doctor} name="doctor" placeholder="Doctor ID" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip01" value={doctor} name="doctor" placeholder="Doctor ID" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -169,7 +178,7 @@ class EditLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Test Name</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" value={test_name} name="test_name" placeholder="Test Name" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip02" value={test_name} name="test_name" placeholder="Test Name" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -178,7 +187,7 @@ class EditLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Test Date</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" value={test_date} name="test_date" placeholder="Test Date" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip02" value={test_date} name="test_date" placeholder="Test Date" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -187,7 +196,7 @@ class EditLabTest extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Results</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" value={results} name="results" placeholder="Results" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip02" value={results} name="results" placeholder="Results" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -211,6 +220,6 @@ class EditLabTest extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default EditLabTest;

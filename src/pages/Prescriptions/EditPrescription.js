@@ -1,17 +1,13 @@
-import React, { Component } from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
-//import { toast } from 'react-toastify';
-
+import React, {useState,useEffect} from "react";
+import { Row, Col, Card, CardBody, Button, Label, Input, Container, Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
-// Import Breadcrumb
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-import { drfUpdatePrescriptions } from "../../drfServer";
-class EditPrescription extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+import { drfUpdatePrescriptions, drfGetSpecificPrescription } from "../../drfServer";
+
+const EditPrescription = ({match,history})=> {
+    
+    const [formData, setFormData] = useState({
             patient: "",
             doctor: "",
             prescription_date: "",
@@ -20,60 +16,63 @@ class EditPrescription extends Component {
             client_id: "",
             access_token:"",
 
-        };
-    }
-    async componentDidMount() {
-        const { match } = this.props; // React Router match object
+        });
+    
+    useEffect(()=>{
+      const fetchData = async()=>{
         const access = JSON.parse(localStorage.getItem('access_token'));
-
-        const prescription_id = match.params.prescription_id;
-        // Load client_id from local storage and set it in the state
         const id = JSON.parse(localStorage.getItem('client_id'));
+        const prescription_id = match.params.prescription_id;
         if (id) {
-            this.setState({ client_id: id ,access_token: access});
-
-        }
-
-
-        try {
-            const response = await fetch(`/Prescription/details-By/`, {
-                method: "POST",
+            setFormData(prevState => ({ ...prevState, client_id: id, access_token: access,prescription_id }));
+            const headersPart = {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${access}`,
-
+    
                 },
-                body: JSON.stringify({ prescription_id, client_id: id }), // Use the updated client_id
-            });
-            if (!response.ok) {
-                throw new Error("Network response was not ok.");
             }
-            const data = await response.json();
-            // console.log(data.data);
-
-            // Update state with fetched doctor data
-            this.setState({
-                prescription_id: data.Data.prescription_id,
-                prescription_date: data.Data.prescription_date,
-                notes: data.Data.notes,
-                patient: data.Data.patient,
-                doctor: data.Data.doctor,
-                created_at: data.Data.created_at,
-                updated_at: data.Data.updated_at,
-            });
-            // console.log(gender);
-        } catch (error) {
-            console.log(error);
-            // Handle error fetching doctor data
+            const requestFormData = { prescription_id,client_id: id }
+            try {
+                const response = await drfGetSpecificPrescription(requestFormData,headersPart);
+                console.log(response);
+                if (!response.status === 200) {
+                    throw new Error('Network response was not ok.');
+                  } 
+                
+                const data = await response.data;
+                console.log(data)
+               
+                setFormData((prevState)=>({
+                    ...prevState,
+                    prescription_id: data.Data.prescription_id,
+                    prescription_date: data.Data.prescription_date,
+                    notes: data.Data.notes,
+                    patient: data.Data.patient,
+                    doctor: data.Data.doctor,
+                    created_at: data.Data.created_at,
+                    updated_at: data.Data.updated_at,
+                }));
+            
+            } catch (error) {
+               throw new Error(error);
+               
+            }
         }
-    }
-    handleChange = (e) => {
-        this.setState({
-            [e.target.name]: e.target.value,
-        });
+        else{
+            throw new Error("Client ID not found");
+        }
+
+    };
+    fetchData();
+    },[match.params.prescription_id]);
+       
+    
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const {
           patient,
@@ -83,9 +82,9 @@ class EditPrescription extends Component {
           prescription_id,
           client_id,
           access_token,
-        } = this.state;
+        } = formData;
     
-        const formData = {
+        const requestFormData = {
           patient,
           doctor,
           prescription_date,
@@ -99,12 +98,12 @@ class EditPrescription extends Component {
           }
     
         try {
-          const response = await drfUpdatePrescriptions(formData,headersPart);
+          const response = await drfUpdatePrescriptions(requestFormData,headersPart);
     
           if (response.data.message) {
             toast.success(`${response.data.message}`,{autoClose:1000});
             // Redirect to the appropriate page after successful update
-            this.props.history.push('/prescription-list'); // Assuming '/prescription-list' is the route for the prescription list page
+            history.replace('/prescription-list'); // Assuming '/prescription-list' is the route for the prescription list page
           } else {
             toast.error('An error occurred while processing your request.');
           }
@@ -117,12 +116,8 @@ class EditPrescription extends Component {
         }
       };
 
-    render() {
-        const {
-            patient,
-            doctor,
-            prescription_date,
-            notes } = this.state;
+   
+        const { patient,doctor,prescription_date,notes} = formData;
         return (
             <React.Fragment>
                 <div className="page-content">
@@ -131,12 +126,12 @@ class EditPrescription extends Component {
                             <Col lg={12}>
                                 <Card>
                                     <CardBody>
-                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={this.handleSubmit}>
+                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={handleSubmit}>
                                             <Row>
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Pateint ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" value={patient} name="patient_id" placeholder="Patient ID" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip01" value={patient} name="patient_id" placeholder="Patient ID" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -145,7 +140,7 @@ class EditPrescription extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Doctor ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" value={doctor} name="doctor_id" placeholder="Doctor ID" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip01" value={doctor} name="doctor_id" placeholder="Doctor ID" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -158,7 +153,7 @@ class EditPrescription extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Prescription Date</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" value={prescription_date} name="prescription_date" placeholder="Prescription Date" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip02" value={prescription_date} name="prescription_date" placeholder="Prescription Date" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -168,7 +163,7 @@ class EditPrescription extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip04">Notes</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip04" value={notes} name="notes" placeholder="Notes" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip04" value={notes} name="notes" placeholder="Notes" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -192,6 +187,6 @@ class EditPrescription extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default EditPrescription;

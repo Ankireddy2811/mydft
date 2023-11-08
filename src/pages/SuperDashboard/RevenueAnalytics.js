@@ -1,13 +1,13 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Row, Col, Card, CardBody, ButtonGroup, Button } from 'reactstrap';
 
 //Import Charts
 import { RevenueAnalyticsChart } from './Charts'
 import "./dashboard.scss";
 
-class RevenueAnalytics extends Component {
-    render() {
-        return (
+const RevenueAnalytics = ()=>
+    
+        (
             <React.Fragment>
                 <Card>
                     <CardBody>
@@ -60,7 +60,6 @@ class RevenueAnalytics extends Component {
                 </Card>
             </React.Fragment>
         );
-    }
-}
+ 
 
 export default RevenueAnalytics;

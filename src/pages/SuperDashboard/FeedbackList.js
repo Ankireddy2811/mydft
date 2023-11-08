@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+/* import React, { Component } from "react";
 import { Row, Col, Card, CardBody, Container } from "reactstrap";
 import { withRouter } from "react-router-dom";
 import Breadcrumbs from '../../components/Common/Breadcrumb';
@@ -108,4 +108,110 @@ class FeedBack extends Component {
         );
     }
 }
+export default withRouter(FeedBack); */
+
+
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Card, CardBody, Container } from 'reactstrap';
+import { withRouter } from 'react-router-dom';
+//import Breadcrumbs from '../../components/Common/Breadcrumb';
+import BootstrapTable from 'react-bootstrap-table-next';
+import {drfGetFeedback} from "../../drfServer"
+
+const FeedBack = (props)=>{
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [client_id, setClientId] = useState('');
+  const [access_token, setAccessToken] = useState('');
+
+  useEffect(() => {
+    const access = JSON.parse(localStorage.getItem('access_token'));
+    const id = JSON.parse(localStorage.getItem('client_id'));
+
+    if (access) {
+      setAccessToken(access);
+      setClientId(id);
+      getFeedbacks();
+    }
+  }, [client_id]);
+
+  const getFeedbacks = async () => {
+    const headersPart = {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access_token}`,
+        },
+    }
+    try {
+      const response = await drfGetFeedback(headersPart);
+
+      if (!response.status === 200) {
+        throw new Error('Network response was not ok.');
+      }
+
+      const responseData = await response.data;
+      setData(responseData);
+      setLoading(false);
+    } catch (err) {
+      setError('Error fetching data');
+      setLoading(false);
+    }
+  };
+
+  const columns = [
+    {
+      dataField: 'id',
+      text: 'SNo',
+      formatter: (cell, row, rowIndex) => rowIndex + 1,
+      headerStyle: { width: '5%' },
+    },
+    { dataField: 'email', text: 'Email', sort: true },
+    { dataField: 'notes', text: 'Notes' },
+  ];
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  return (
+    <React.Fragment>
+      <Container fluid>
+        <h5 className="mb-4">Client Feedbacks</h5>
+        <Row>
+          <Col>
+            <Card>
+              <CardBody>
+                <div className="table-responsive">
+                  <BootstrapTable
+                    keyField="id"
+                    data={data}
+                    columns={columns}
+                    bootstrap4
+                    bordered={false}
+                    striped
+                    hover
+                    condensed
+                    wrapperClasses="table-responsive"
+                    classes="table table-nowrap table-hover"
+                  />
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </React.Fragment>
+  );
+}
+
 export default withRouter(FeedBack);
+
+
+
+
+

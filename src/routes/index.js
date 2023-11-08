@@ -13,7 +13,7 @@ import ProfilePasswordChange from "../pages/Authentication/ProfilePasswordChange
 import Dashboard from "../pages/Dashboard/index";
 import NotFound from "../NotFound";
 //Doctor
-import ViewDoctorsList from "../pages/Doctor/ViewDoctorsList";
+
 import AddDoctor from "../pages/Doctor/AddDoctor";
 import Doctors from "../pages/Doctor/Doctors";
 import EditDoctor from "../pages/Doctor/EditDoctor";
@@ -78,7 +78,7 @@ const authProtectedRoutes = [
 	{ path: "/doctors", component: Doctors},
 	{ path: "/add-doctor", component: AddDoctor},
 	{ path:"/edit-doctor/:doctor_id", component:EditDoctor },
-	 {path: "/ViewDoctorsList", component: ViewDoctorsList },
+	
 	//Pateints
 	{ path: "/patients", component: Patients},
 	{ path: "/add-patient", component: AddPatient},
@@ -140,7 +140,7 @@ const authProtectedRoutes = [
 
     // { path: "/not-found", component: NotFound },
 	// this route should be at the end of all other routes
-	{ path: "/", exact: true, component: () => <Redirect to="/dashboard" /> },
+	 { path: "/", exact: true, component: () => <Redirect to="/dashboard" /> },
     
     //{ path: "*", exact:true,component: () => <Redirect to="/not-found" /> }
 
@@ -151,10 +151,10 @@ const authProtectedRoutes = [
    
 
 	
-    /* { path: "/home", component: Dashboard },
+    // { path: "/home", component: Dashboard },
       
-    { path: "/", component: NotFound } */
-    
+    // { path: "/", component: NotFound } 
+    // this route should be at the end of all other routes
 
 ];
 

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { Row, Col, Card, CardBody, Container } from "reactstrap";
 import { FaEdit, FaTrashAlt, FaEllipsisV } from 'react-icons/fa';
 import Breadcrumbs from '../../components/Common/Breadcrumb';
@@ -10,83 +10,58 @@ import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import Swal from "sweetalert2";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
+// import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 import { drfDeletePrescriptions,drfGetPrescriptions } from "../../drfServer";
-class Prescriptions extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            breadcrumbItems: [
-                { title: "Tables", link: "#" },
-                { title: "Responsive Table", link: "#" },
-            ],
-            data: [],
-            loading: true,
-            error: null,
-            currentPage: 1,
-            prescriptionPerPage: 10,
-            exportData: [],
-            exportDropdownOpen: false,
-            client_id:"",
-            access_token:"",
-        };
-    }
 
-    // componentDidMount() {
-    //     this.getAllPrescriptions();
-    // }
-    componentDidMount() {
-        // const { sortOrder } = this.state; // You're not using client_id from state, so no need to destructure it here.
+
+const Prescriptions = (props) => {
+    const [breadcrumbItems] = useState([
+        { title: "Tables", link: "#" },
+        { title: "Responsive Table", link: "#" },
+    ]);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [prescriptionPerPage] = useState(10);
+    const [exportData, setExportData] = useState([]);
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+    const [client_id, setClientId] = useState("");
+    const [access_token, setAccessToken] = useState("");
+    const [csvLink, setCsvLink] = useState(null);
+
+    useEffect(() => {
         const access = JSON.parse(localStorage.getItem('access_token'));
         const id = JSON.parse(localStorage.getItem('client_id'));
         if (access) {
-          this.setState({ access_token: access });
-          console.log("hello" + this.state.access_token);
-          this.setState({ client_id: id }, () => {
-            this.getAllPrescriptions();
-          });
-}
-       }
+            setAccessToken(access);
+            setClientId(id);
+            getAllPrescriptions(id, access);
+        }
+    }, []);
 
-    handleEdit = (prescription_id) => {
-        this.props.history.push(`/edit-prescription/${prescription_id}`);
+    const handleEdit = (prescription_id) => {
+        props.history.replace(`/edit-prescription/${prescription_id}`);
     };
 
-    getAllPrescriptions = async () => {
-        // try {
-        //     const response = await fetch("http://194.163.40.231:8080/Prescription/list/");
-        //     if (!response.ok) {
-        //         throw new Error("Network response was not ok.");
-        //     }
-        //     const data = await response.json();
-        //     this.setState({ data, loading: false });
-        //     console.log(data);
-        // } catch (error) {
-        //     this.setState({ error: 'Error fetching data', loading: false });
-        // }
-        const acces = this.state.access_token;
+    const getAllPrescriptions = async (client_id, access) => {
         const headersPart = {
-            headers: { "Content-Type": "application/json",'Authorization': `Bearer ${acces}`}
+            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${access}` }
         }
 
         try {
-            const { client_id } = this.state;
-            const response = await drfGetPrescriptions({client_id },headersPart);
-    
-            
-    
-            const data = response.data; // No need to await here, response.data is already a Promise
-            this.setState({ data: data, loading: false });
-           // console.log(data);
+            const response = await drfGetPrescriptions(client_id, headersPart);
+            const fetchedData = response.data;
+            setData(fetchedData);
+            setLoading(false);
         } catch (error) {
-            this.setState({ error: 'Error fetching data', loading: false });
+            setError('Error fetching data');
+            setLoading(false);
         }
     };
-
-    handleDeletePrescriptions = async (prescription_id) => {
-        const { client_id, access_token } = this.state;
-      
+    
+    const handleDeletePrescriptions = async (prescription_id) => {
         try {
           const result = await Swal.fire({
             title: 'Are you sure?',
@@ -99,12 +74,8 @@ class Prescriptions extends Component {
           });
       
           if (result.isConfirmed) {
-            await this.deletePrescription(prescription_id, client_id, access_token);
-            Swal.fire(
-                'Deleted!',
-                'Your file has been deleted.',
-                'success'
-              )
+            await deletePrescription(prescription_id, client_id, access_token);
+            Swal.fire( 'Deleted!', 'Your file has been deleted.', 'success')
           } 
         } catch (error) {
           console.error('Deletion failed:', error);
@@ -112,8 +83,8 @@ class Prescriptions extends Component {
         }
       };
       
-      deletePrescription = async (prescription_id, client_id, access_token) => {
-        const formData =  { prescription_id, client_id };
+      const deletePrescription = async (prescription_id, client_id, access_token) => {
+        const requestFormData =  { prescription_id, client_id };
         const headersPart =  {
             headers: {
               "Content-Type": "application/json",
@@ -122,10 +93,10 @@ class Prescriptions extends Component {
           }
         
         try {
-          const response = await drfDeletePrescriptions(formData,headersPart);
+          const response = await drfDeletePrescriptions(requestFormData,headersPart);
       
           if (response.status === 204) {
-            await this.getAllPrescriptions();
+            await getAllPrescriptions();
             toast.success('The prescription has been deleted.');
           } else {
             throw new Error('Deletion failed');
@@ -136,14 +107,12 @@ class Prescriptions extends Component {
         }
       };
       
-    handlePageChange = (newPage) => {
-        this.setState({
-            currentPage: newPage,
-        });
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
     };
 
-    prepareExportData = () => {
-        const { data } = this.state;
+    const prepareExportData = () => {
+        
         const exportData = data.map((prescription) => ({
             'Prescription ID': prescription.prescription_id,
             'Prescription Date': prescription.prescription_date,
@@ -156,30 +125,29 @@ class Prescriptions extends Component {
         return exportData;
     };
 
-    handleCSVExport = () => {
-        const exportData = this.prepareExportData();
-        this.setState({ exportData }, () => {
-            // Trigger CSV download
-            this.csvLink.link.click();
-        });
+    const handleCSVExport = () => {
+        const exportData =prepareExportData();
+        setExportData(exportData);
+        csvLink.link.click();
+        
     };
 
-    handleExcelExport = () => {
-        const exportData = this.prepareExportData();
+    const handleExcelExport = () => {
+        const exportData = prepareExportData();
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Prescriptions');
         XLSX.writeFile(wb, 'prescriptions.xlsx');
     };
 
-    toggleExportDropdown = () => {
-        this.setState((prevState) => ({
-            exportDropdownOpen: !prevState.exportDropdownOpen,
-        }));
+    const toggleExportDropdown = () => {
+        setExportDropdownOpen(!exportDropdownOpen);
     };
 
-    renderPagination = () => {
-        const { data, currentPage, prescriptionPerPage } = this.state;
+    const renderPagination = () => {
+        if (!data){
+            return null;
+        }
         const totalPages = Math.ceil(data.length / prescriptionPerPage);
 
         if (totalPages <= 1) {
@@ -190,7 +158,7 @@ class Prescriptions extends Component {
         for (let i = 1; i <= totalPages; i++) {
             paginationItems.push(
                 <li key={i} className={`page-item${currentPage === i ? ' active' : ''}`}>
-                    <a className="page-link" href="#" onClick={() => this.handlePageChange(i)}>
+                    <a className="page-link" href="#" onClick={() => handlePageChange(i)}>
                         {i}
                     </a>
                 </li>
@@ -204,30 +172,12 @@ class Prescriptions extends Component {
         );
     };
 
-    render() {
-        const { data, loading, error, currentPage, prescriptionPerPage } = this.state;
-
-        if (data !== null){
-            for (let j=0; j < data.length;j++){
-                data[j]["prescription_id"] = j+1;
-            }
-        }
-
-
-        if (loading) {
-            return <div>Loading...</div>;
-        }
-
-        if (error) {
-            return <div>{error}</div>;
-        }
-
-        const indexOfLastPrescription = currentPage * prescriptionPerPage;
-        const indexOfFirstPrescription = indexOfLastPrescription - prescriptionPerPage;
-        const currentPrescription = data.slice(indexOfFirstPrescription, indexOfLastPrescription);
+    const indexOfLastPrescription = currentPage * prescriptionPerPage;
+    const indexOfFirstPrescription = indexOfLastPrescription - prescriptionPerPage;
+    const currentPrescription = data.slice(indexOfFirstPrescription, indexOfLastPrescription) ||[];
 
         const columns = [
-            { dataField: 'prescription_id', text: 'SNO', sort: true },
+            { dataField: 'prescription_id', text: 'Prescription ID', sort: true },
             { dataField: 'prescription_date', text: 'Prescription Date', sort: true },
             { dataField: 'notes', text: 'Notes', sort: true },
             { dataField: 'patient', text: 'Patient ID', sort: true },
@@ -237,58 +187,58 @@ class Prescriptions extends Component {
             {
                 dataField: 'actions', text: 'Actions', formatter: (cell, row) => (
                     <>
-                        <FaEdit style={{ color: "purple" }} className="cursor-pointer mx-2" onClick={() => this.handleEdit(row.prescription_id)} />
-                        <FaTrashAlt style={{ color: "red" }} className="cursor-pointer mx-2" onClick={() => this.handleDeletePrescriptions(row.prescription_id)} />
+                        <FaEdit style={{ color: "purple" }} className="cursor-pointer mx-2" onClick={() => handleEdit(row.prescription_id)} />
+                        <FaTrashAlt style={{ color: "red" }} className="cursor-pointer mx-2" onClick={() => handleDeletePrescriptions(row.prescription_id)} />
                     </>
                 )
             },
         ];
-
-        return (
-            <React.Fragment>
-                <div className="page-content">
-                    <Container fluid>
-                        <Breadcrumbs title="PRESCRIPTIONS LIST" breadcrumbItems={this.state.breadcrumbItems} />
-                        <Row>
-                            <Col xs={12}>
-                                <Card>
-                                    <CardBody>
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <Dropdown isOpen={this.state.exportDropdownOpen} toggle={this.toggleExportDropdown}>
-                                                <DropdownToggle caret>
-                                                    Export
-                                                </DropdownToggle>
-                                                <DropdownMenu>
-                                                    <DropdownItem onClick={this.handleCSVExport}>Export as CSV</DropdownItem>
-                                                    <DropdownItem onClick={this.handleExcelExport}>Export as Excel</DropdownItem>
-                                                </DropdownMenu>
-                                            </Dropdown>
-                                        </div>
-                                        <div className="table-responsive">
-                                            <BootstrapTable
-                                                keyField="prescription_id"
-                                                data={currentPrescription}
-                                                columns={columns}
-                                                pagination={paginationFactory()}
-                                            />
-                                        </div>
-                                        {this.renderPagination()}
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        </Row>
-                    </Container>
-                </div>
-                <CSVLink
-                    data={this.state.exportData}
-                    filename={"prescriptions.csv"}
-                    className="hidden"
-                    ref={(r) => (this.csvLink = r)}
-                    target="_blank"
-                />
-            </React.Fragment>
-        );
-    }
-}
+    
+    return (
+        <React.Fragment>
+        <div className="page-content">
+            <Container fluid>
+                <Breadcrumbs title="PRESCRIPTIONS LIST" breadcrumbItems={breadcrumbItems} />
+                <Row>
+                    <Col xs={12}>
+                        <Card>
+                            <CardBody>
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <Dropdown isOpen={exportDropdownOpen} toggle={toggleExportDropdown}>
+                                        <DropdownToggle caret>
+                                            Export
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem onClick={handleCSVExport}>Export as CSV</DropdownItem>
+                                            <DropdownItem onClick={handleExcelExport}>Export as Excel</DropdownItem>
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                </div>
+                                <div className="table-responsive">
+                                    <BootstrapTable
+                                        keyField="prescription_id"
+                                        data={currentPrescription}
+                                        columns={columns}
+                                        pagination={paginationFactory()}
+                                    />
+                                </div>
+                                {renderPagination()}
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        </div>
+  
+        <CSVLink
+            data={exportData}
+            filename={"prescriptions.csv"}
+            className="hidden"
+            ref={(r) => setCsvLink(r)} // Set the ref with the setter function
+            target="_blank"
+        />
+    </React.Fragment>
+    );
+};
 
 export default Prescriptions;

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+ /* import React, { Component } from "react";
 import { Container, Row, Col } from "reactstrap";
 
 
@@ -49,7 +49,7 @@ class SuperDashboard extends Component {
                                 {< FeedbackList reports={this.state.reports}/>}
                               
                             </Col>
-                            {/* Other components */}
+                            {/}
                         </Row>
                     </Container>
                 </div>
@@ -58,4 +58,53 @@ class SuperDashboard extends Component {
     }
 }
 
+export default SuperDashboard; */
+
+
+import React, { useState } from 'react';
+import { Container, Row, Col } from 'reactstrap';
+
+// Import Breadcrumb
+import Breadcrumbs from '../../components/Common/Breadcrumb';
+
+// Import Components
+import FeedbackList from './FeedbackList';
+
+import Counter3 from './Counter3';
+
+
+const SuperDashboard = ()=>{
+  const [breadcrumbItems] = useState([
+    { title: 'orionqo', link: '/' },
+    { title: 'Dashboard', link: '#' },
+  ]);
+
+  const [reports] = useState([
+    { icon: 'ri-stack-line', title: 'Number of Sales', value: '1452', rate: '2.4%', desc: 'From previous period' },
+    { icon: 'ri-store-2-line', title: 'Sales Revenue', value: '$ 38452', rate: '2.4%', desc: 'From previous period' },
+    { icon: 'ri-briefcase-4-line', title: 'Average Price', value: '$ 15.4', rate: '2.4%', desc: 'From previous period' },
+  ]);
+
+  return (
+    <React.Fragment>
+      <div className="page-content">
+        <Container fluid>
+          <Breadcrumbs title="Dashboard" breadcrumbItems={breadcrumbItems} />
+          <Row>
+            <Col xl={12}>
+              <Row>
+                <Counter3 reports={reports} />
+              </Row>
+              {<FeedbackList reports={reports} />}
+            </Col>
+            {/* Other components */}
+          </Row>
+        </Container>
+      </div>
+    </React.Fragment>
+  );
+}
+
 export default SuperDashboard;
+
+

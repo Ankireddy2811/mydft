@@ -59,6 +59,10 @@ export const drfFeedback = async (body) => {
   return await axios.post(`${MAINURL}Feedback/add/`, body);
 };
 
+export const drfGetFeedback = async (body) => {
+  return await axios.get(`${MAINURL}Feedback/list/`, body);
+};
+
 
 
 
@@ -105,7 +109,7 @@ export const drfUpdateAppointment = async (formData,headersPart) => {
 // API for delete the Appointment 
 
 export const drfDeleteAppointment = async (formData,headersPart) => {
-  return await axios.post(`${MAINURL}Appointment/deleteBy/`, formData,headersPart);
+  return await axios.put(`${MAINURL}Appointment/cancelled/`, formData,headersPart);
 };
 // -----------------------------------------------END----------------------------------------------
 
@@ -127,6 +131,14 @@ export const drfAddBed = async (formData,headerPart) => {
 export const drfGetBedDetails = async (formData,headersPart) => {
   return await axios.post(`${MAINURL}Bed/detail/`, formData,headersPart);
 };
+
+
+// API for Get the Specific Bed Details
+
+export const drfGetSpecificBedDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Bed/details-By/`, formData,headerPart);
+};
+
 
 // API for update the bed 
 
@@ -187,6 +199,11 @@ export const drfGetDoctorDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Doctor/details/`, formData,headerPart);
 };
 
+// API for Get the Specific Doctor Details
+
+export const drfGetSpecificDoctorDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Doctor/details-By/`, formData,headerPart);
+};
 
 // API for update the Doctor Details
 
@@ -220,8 +237,8 @@ export const drfGetHospitalDetails = async (body) => {
 
 // API for Get the Hospital list by id
 
-export const drfGetHospitalListById = async (client_id,body) => {
-  return await axios.get(`${MAINURL}Hospital/list/${client_id}`, body);
+export const drfGetHospitalListById = async (client_id,headerPart) => {
+  return await axios.get(`${MAINURL}Hospital/list/${client_id}`, headerPart);
 };
 
 
@@ -258,6 +275,12 @@ export const drfGetInvoiceDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Invoice/details/`, formData,headerPart);
 };
 
+// API for Get the Specific Invoice Details
+
+export const drfGetSpecificInvoiceDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Invoice/details-By/`, formData,headerPart);
+};
+
 
 // API for update the Invoice Details
 
@@ -289,6 +312,12 @@ export const drfGetLabTestDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}LabTest/details/`, formData,headerPart);
 };
 
+// API for Get the LabTest Details
+
+export const drfGetSpecificLabTestDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}LabTest/details-By/`, formData,headerPart);
+};
+
 
 // API for update the LabTest Details
 
@@ -317,6 +346,12 @@ export const drfAddMedicine = async (formData,headerPart) => {
 
 export const drfGetMedicineDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Medicine/details/`, formData,headerPart);
+};
+
+// API for Get the Specific Medicine Details
+
+export const drfGetSpecificMedicineDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Medicine/details-By/`, formData,headerPart);
 };
 
 
@@ -353,6 +388,11 @@ export const drfGetNursesDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Nurse/details/`, formData,headerPart);
 };
 
+// API for Get the Specific Nurse Details
+
+export const drfGetSpecificNurseDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Nurse/details-By/`, formData,headerPart);
+};
 
 // API for update the Nurses Details
 
@@ -383,6 +423,11 @@ export const drfGetPatientDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Patient/details/`, formData,headerPart);
 };
 
+// API for Get the Specific Invoice Details
+
+export const drfGetSpecificPatientDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Patient/details-By/`, formData,headerPart);
+};
 
 // API for update the Patient Details
 
@@ -414,6 +459,11 @@ export const drfGetPaymentDetails = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Payment/details/`, formData,headerPart);
 };
 
+// API for Get the Specific Payment Details
+
+export const drfGetSpecificPaymentDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Payment/details-By/`, formData,headerPart);
+};
 
 // API for update the Payment Details
 
@@ -442,6 +492,12 @@ export const drfAddPrescriptionDetail = async (formData,headerPart) => {
 
 export const drfGetPrescriptionDetail = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}PrescriptionDetail/details/`, formData,headerPart);
+};
+
+// API for Get the Specific PrescriptionsDetail Details
+
+export const drfGetSpecificPrescriptionDetails = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}PrescriptionDetail/details-By/`, formData,headerPart);
 };
 
 
@@ -473,6 +529,12 @@ export const drfAddPrescriptions = async (formData,headerPart) => {
 
 export const drfGetPrescriptions = async (formData,headerPart) => {
   return await axios.post(`${MAINURL}Prescription/details/`, formData,headerPart);
+};
+
+// API for Get the Specific Prescriptions Details
+
+export const drfGetSpecificPrescription = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Prescription/details-By/`, formData,headerPart);
 };
 
 

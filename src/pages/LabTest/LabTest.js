@@ -1,10 +1,9 @@
-import React, { Component } from "react";
+import React, {useState,useEffect } from "react";
 import { Row, Col, Card, CardBody, Container } from "reactstrap";
-import { FaEdit, FaTrashAlt, FaEllipsisV } from 'react-icons/fa';
+import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import Swal from "sweetalert2";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
@@ -13,86 +12,76 @@ import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { drfDeleteLabTest,drfGetLabTestDetails } from "../../drfServer";
-class LabTest extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            breadcrumbItems: [
-                { title: "Tables", link: "#" },
-                { title: "Responsive Table", link: "#" },
-            ],
-            data: null,
-            loading: true,
-            error: null,
-            currentPage: 1,
-            labPerPage: 10,
-            exportData: [],
-            exportDropdownOpen: false,
-            client_id:"",
-            access_token:"",
-            sortOrder: 'asc', // Initial sorting order
-            sortField: 'doctor_id', // Initial sorting field
-            sortDirection: 'asc', // Initial sorting direction
-            sortedColumn: 'doctor_id', // Initial sorted column
-            searchQuery: "", // State for search query
 
-        };
-    }
+const LabTest = ({history})=>{
 
-    // componentDidMount() {
-    //     this.getAllLabTest();
-    // }
-    componentDidMount() {
-        // const { sortOrder } = this.state; // You're not using client_id from state, so no need to destructure it here.
-       
+    const [breadcrumbItems] = useState([
+        { title: "Tables", link: "#" },
+        { title: "Responsive Table", link: "#" },
+    ]);
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [labPerPage] = useState(10);
+    const [exportData, setExportData] = useState([]);
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+    const [client_id, setClientId] = useState("");
+    const [sortOrder] = useState('asc');
+   
+    const [access_token, setAccessToken] = useState("");
+    const [csvLink, setCsvLink] = useState(null);
+
+
+    useEffect(()=>{
         const access = JSON.parse(localStorage.getItem('access_token'));
         const id = JSON.parse(localStorage.getItem('client_id'));
-        if (access) {
-          this.setState({ access_token: access });
-          console.log("hello" + this.state.access_token);
-          this.setState({ client_id: id }, () => {
-            this.getAllLabTest();
-          });
-}
+        if(id){
+            setAccessToken(access);
+            setClientId(id);
+            getAllLabTest(id,access);
+            
+        }
 
-        
-       }
-    handleEdit = (lab_test_id) => {
-        this.props.history.push(`/edit-lab-test/${lab_test_id}`);
+    },[]); 
+      
+       
+    const handleEdit = (lab_test_id) => {
+        history.replace(`/edit-lab-test/${lab_test_id}`);
     };
 
     
-    getAllLabTest = async () => {
-        const acces = this.state.access_token;
+    const getAllLabTest = async (client_id,access_token) => {
+        
         const headersPart = {
             headers: {
                 "Content-Type": "application/json", // Set the content type to JSON,
-                'Authorization': `Bearer ${acces}`,
+                'Authorization': `Bearer ${access_token}`,
   
               }
         }
 
         try {
-          const { client_id} = this.state;
+         
           const response = await drfGetLabTestDetails({ client_id }, headersPart);
-      
-        //   if (response.status !== 200) {
-        //     throw new Error("Network response was not ok.");
-        //   }
-      
           const data = response.data;
+
+          const sortedData = sortOrder === 'asc'
+                ? data.sort((a, b) => a.lab_test_id - b.lab_test_id)
+                : data.sort((a, b) => b.lab_test_id - a.lab_test_id);
+
+          setData(sortedData);
+          setLoading(false);
       
-          
-      
-          this.setState({ data: data, loading: false });
+         
         } catch (error) {
-          this.setState({ error: 'Error fetching data', loading: false });
+            setError('Error fetching data');
+            setLoading(false);
         }
       };
 
-      handleDeleteLabTest = async (lab_test_id) => {
-        const { client_id, access_token } = this.state;
-      
+      const handleDeleteLabTest = async (lab_test_id) => {
+       
         try {
           const result = await Swal.fire({
             title: 'Are you sure?',
@@ -105,7 +94,7 @@ class LabTest extends Component {
           });
       
           if (result.isConfirmed) {
-            await this.deleteLabTest(lab_test_id, client_id, access_token);
+            await deleteLabTest(lab_test_id, client_id, access_token);
             Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
 
           } 
@@ -115,7 +104,7 @@ class LabTest extends Component {
         }
       };
       
-      deleteLabTest = async (lab_test_id, client_id, access_token) => {
+    const deleteLabTest = async (lab_test_id, client_id, access_token) => {
         const formData = {lab_test_id, client_id}
         const headersPart = {
             headers: {
@@ -125,7 +114,8 @@ class LabTest extends Component {
           }
         try {
           await drfDeleteLabTest(formData,headersPart);
-          await this.getAllLabTest();
+          await getAllLabTest();
+          toast.success('The Invoice has been deleted.');
 
         } catch (error) {
           console.error('Deletion failed:', error);
@@ -134,14 +124,13 @@ class LabTest extends Component {
       };
       
 
-    handlePageChange = (newPage) => {
-        this.setState({
-            currentPage: newPage,
-        });
-    };
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+      };
 
-    prepareExportData = () => {
-        const { data } = this.state;
+
+    const prepareExportData = () => {
+        
         const exportData = data.map((lab) => ({
             'Lab Test ID': lab.lab_test_id,
             'Patient ID': lab.patient_id,
@@ -155,30 +144,38 @@ class LabTest extends Component {
         return exportData;
     };
 
-    handleCSVExport = () => {
-        const exportData = this.prepareExportData();
-        this.setState({ exportData }, () => {
-            // Trigger CSV download
-            this.csvLink.link.click();
-        });
+   
+
+
+    const handleCSVExport = () => {
+        const exportData = prepareExportData();
+        setExportData(exportData);
+        // Trigger CSV download
+        csvLink.link.click();
     };
 
-    handleExcelExport = () => {
-        const exportData = this.prepareExportData();
+    const handleExcelExport = () => {
+        const exportData = prepareExportData();
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'LabTests');
         XLSX.writeFile(wb, 'lab_tests.xlsx');
     };
 
-    toggleExportDropdown = () => {
-        this.setState((prevState) => ({
-            exportDropdownOpen: !prevState.exportDropdownOpen,
-        }));
+    
+    const toggleExportDropdown = () => {
+        setExportDropdownOpen(!exportDropdownOpen);
     };
 
-    renderPagination = () => {
-        const { data, currentPage, labPerPage } = this.state;
+    
+    
+
+    const renderPagination = () => {
+        
+        if (!data){
+            return null;
+        }
+
         const totalPages = Math.ceil(data.length / labPerPage);
 
         if (totalPages <= 1) {
@@ -189,7 +186,7 @@ class LabTest extends Component {
         for (let i = 1; i <= totalPages; i++) {
             paginationItems.push(
                 <li key={i} className={`page-item${currentPage === i ? ' active' : ''}`}>
-                    <a className="page-link" href="#" onClick={() => this.handlePageChange(i)}>
+                    <a className="page-link" href="#" onClick={() => handlePageChange(i)}>
                         {i}
                     </a>
                 </li>
@@ -203,65 +200,53 @@ class LabTest extends Component {
         );
     };
 
-    render() {
-        const { data, loading, error, currentPage, labPerPage } = this.state;
 
-        if (data !== null){
-            for (let j=0; j < data.length;j++){
-                data[j]["lab_test_id"] = j+1;
-            }
-        }
 
-        if (loading) {
-            return <div>Loading...</div>;
-        }
+    const indexOfLastLab = currentPage * labPerPage;
+    const indexOfFirstLab = indexOfLastLab - labPerPage;
+    const currentLab = data?.slice(indexOfFirstLab, indexOfLastLab) || [];
 
-        if (error) {
-            return <div>{error}</div>;
-        }
+    const columns = [
+        { dataField: 'lab_test_id', text: 'Lab Test ID', sort: true },
+        { dataField: 'patient_id', text: 'Patient ID' },
+        { dataField: 'doctor_id', text: 'Doctor ID' },
+        { dataField: 'test_name', text: 'Test Name' },
+        { dataField: 'test_date', text: 'Test Date' },
+        { dataField: 'results', text: 'Results' },
+        { dataField: 'created_at', text: 'Created At' },
+        { dataField: 'updated_at', text: 'Updated At' },
+        {
+            dataField: 'actions', text: 'Actions', formatter: (cell, row) => (
+                <>
+                    <FaEdit style={{ color: "purple" }} className="cursor-pointer mx-2" onClick={() => handleEdit(row.lab_test_id)} />
+                    <FaTrashAlt style={{ color: "red" }} className="cursor-pointer mx-2" onClick={() => handleDeleteLabTest(row.lab_test_id)} />
+                </>
+            )
+        },
+    ];
 
-        const indexOfLastLab = currentPage * labPerPage;
-        const indexOfFirstLab = indexOfLastLab - labPerPage;
-        const currentLab = data?.slice(indexOfFirstLab, indexOfLastLab);
-
-        const columns = [
-            { dataField: 'lab_test_id', text: 'SNO', sort: true },
-            { dataField: 'patient_id', text: 'Patient ID' },
-            { dataField: 'doctor_id', text: 'Doctor ID' },
-            { dataField: 'test_name', text: 'Test Name' },
-            { dataField: 'test_date', text: 'Test Date' },
-            { dataField: 'results', text: 'Results' },
-            { dataField: 'created_at', text: 'Created At' },
-            { dataField: 'updated_at', text: 'Updated At' },
-            {
-                dataField: 'actions', text: 'Actions', formatter: (cell, row) => (
-                    <>
-                        <FaEdit style={{ color: "purple" }} className="cursor-pointer mx-2" onClick={() => this.handleEdit(row.lab_test_id)} />
-                        <FaTrashAlt style={{ color: "red" }} className="cursor-pointer mx-2" onClick={() => this.handleDeleteLabTest(row.lab_test_id)} />
-                    </>
-                )
-            },
-        ];
+   
 
         return (
             <React.Fragment>
                 <div className="page-content">
                     <Container fluid>
-                        <Breadcrumbs title="LAB TEST LIST" breadcrumbItems={this.state.breadcrumbItems} />
+                        <Breadcrumbs title="LAB TEST LIST" breadcrumbItems={breadcrumbItems} />
                         <Row>
                             <Col xs={12}>
                                 <Card>
                                     <CardBody>
                                         <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <Dropdown isOpen={this.state.exportDropdownOpen} toggle={this.toggleExportDropdown}>
+                                            <Dropdown isOpen={exportDropdownOpen} toggle={toggleExportDropdown}>
                                                 <DropdownToggle caret>
                                                     Export
                                                 </DropdownToggle>
                                                 <DropdownMenu>
-                                                    <DropdownItem onClick={this.handleCSVExport}>Export as CSV</DropdownItem>
-                                                    <DropdownItem onClick={this.handleExcelExport}>Export as Excel</DropdownItem>
+                                                    <DropdownItem onClick={handleCSVExport}>Export as CSV</DropdownItem>
+                                                    <DropdownItem onClick={handleExcelExport}>Export as Excel</DropdownItem>
                                                 </DropdownMenu>
                                             </Dropdown>
+                                       
                                         </div>
                                         <div className="table-responsive">
                                             <BootstrapTable
@@ -271,7 +256,7 @@ class LabTest extends Component {
                                                 pagination={paginationFactory()}
                                             />
                                         </div>
-                                        {this.renderPagination()}
+                                        {renderPagination()}
                                     </CardBody>
                                 </Card>
                             </Col>
@@ -279,15 +264,15 @@ class LabTest extends Component {
                     </Container>
                 </div>
                 <CSVLink
-                    data={this.state.exportData}
+                    data={exportData}
                     filename={"lab_tests.csv"}
                     className="hidden"
-                    ref={(r) => (this.csvLink = r)}
+                    ref={(r) => setCsvLink(r)} // Set the ref with the setter function
                     target="_blank"
                 />
             </React.Fragment>
         );
     }
-}
+
 
 export default LabTest;

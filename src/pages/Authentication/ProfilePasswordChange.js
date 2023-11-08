@@ -1,35 +1,34 @@
-import React, { Component } from "react";
+import React, {useState,useEffect} from "react";
 import { Row, Col, Alert, Button, Container, Label } from "reactstrap";
 import { toast } from 'react-toastify';
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for stylingimport { withRouter, Link } from "react-router-dom";
 import { AvForm, AvField } from "availity-reactstrap-validation";
 import { withRouter, Link } from 'react-router-dom';
 import logodark from "../../assets/images/logo-dark.png";
 import logolight from "../../assets/images/logo-light.png";
 import {drfProfilePasswordChange} from "../../drfServer";
-class ProfilePasswordChange extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+
+const ProfilePasswordChange =(props)=> {
+    const [formData,setFormData] = useState({
             old_password: "",
             new_password: "",
             confirm_password: "",
             access_token: "",
-        };
-    }
-    async componentDidMount() {
-        // Access the URL parameters using this.props.match.params
+    });
+
+    useEffect(() => {
         const access = JSON.parse(localStorage.getItem('access_token'));
+        if (access) {
+           setFormData(prevState=>({...prevState,access_token:access}))
+        }
+    }, []);
+    
+    
 
-        // Set the uid and token in the component's state
-        this.setState({ access_token: access });
-    }
-
-    handleValidSubmit = async (e) => {
+    const handleValidSubmit = async (e) => {
         e.preventDefault();
-        const { old_password, new_password, confirm_password, access_token } = this.state;
-        const formData = {
+        const { old_password, new_password, confirm_password, access_token } = formData;
+        const requestFormData = {
             old_password,
             new_password,
             confirm_password,
@@ -40,33 +39,35 @@ class ProfilePasswordChange extends Component {
             },
         }
         try {
-            const response = await drfProfilePasswordChange(formData,headersPart);
+            const response = await drfProfilePasswordChange(requestFormData,headersPart);
 
             if (response.data.message) {
                 window.alert(response.data.message);
-                this.props.history.push('/');
+                props.history.replace('/');
             } else {
                 const data = response.data;
                 if (data.error_message.password) {
-                    // Handle password error
+                   throw new Error("Password Is Incorrect")
                 }
                 if (data.error_message.email) {
                     // Handle email error
                 }
             }
         } catch (error) {
+            toast.error(error)
             console.error("Error:", error);
         }
     };
 
-    handleChange = (e) => {
-        this.setState({
+    const handleChange = (e) => {
+        setFormData(prevState=>({
+            ...prevState,
             [e.target.name]: e.target.value,
-        });
+        }));
     };
 
-    render() {
-        const { old_password, new_password, confirm_password, } = this.state;
+    
+        const { old_password, new_password, confirm_password, } = formData;
         return (
             <React.Fragment>
                 <div>
@@ -92,19 +93,19 @@ class ProfilePasswordChange extends Component {
                                                     </div>
 
                                                     <div className="p-2 mt-5">
-                                                        {this.props.forgetError && this.props.forgetError ? (
+                                                        {props.forgetError && props.forgetError ? (
                                                             <Alert color="danger" className="mb-4">
-                                                                {this.props.forgetError}
+                                                                {props.forgetError}
                                                             </Alert>
                                                         ) : null}
-                                                        {this.props.message ? (
+                                                        {props.message ? (
                                                             <Alert color="success" className="mb-4">
-                                                                {this.props.message}
+                                                                {props.message}
                                                             </Alert>
                                                         ) : null}
                                                         <AvForm
                                                             className="form-horizontal"
-                                                            onValidSubmit={this.handleValidSubmit}
+                                                            onValidSubmit={handleValidSubmit}
                                                         >
                                                             <div className="auth-form-group-custom mb-4">
                                                                 <i className="ri-lock-2-line auti-custom-input-icon"></i>
@@ -112,7 +113,7 @@ class ProfilePasswordChange extends Component {
                                                                 <AvField
                                                                     name="old_password"
                                                                     value={old_password}
-                                                                    onChange={this.handleChange}
+                                                                    onChange={handleChange}
                                                                     type="password"
                                                                     validate={{
                                                                         required: { value: true, errorMessage: "Password is required" },
@@ -130,7 +131,7 @@ class ProfilePasswordChange extends Component {
                                                                 <AvField
                                                                     name="new_password"
                                                                     value={new_password}
-                                                                    onChange={this.handleChange}
+                                                                    onChange={handleChange}
                                                                     type="password"
                                                                     validate={{
                                                                         required: { value: true, errorMessage: "Confirm Password is required" },
@@ -146,7 +147,7 @@ class ProfilePasswordChange extends Component {
                                                                 <AvField
                                                                     name="confirm_password"
                                                                     value={confirm_password}
-                                                                    onChange={this.handleChange}
+                                                                    onChange={handleChange}
                                                                     type="password"
                                                                     validate={{
                                                                         required: { value: true, errorMessage: "Confirm Password is required" },
@@ -164,7 +165,7 @@ class ProfilePasswordChange extends Component {
                                                                     className="w-md waves-effect waves-light"
                                                                     type="submit"
                                                                 >
-                                                                    {this.props.loading ? "Loading..." : "Reset"}
+                                                                    {props.loading ? "Loading..." : "Reset"}
                                                                 </Button>
                                                             </div>
                                                         </AvForm>
@@ -191,5 +192,5 @@ class ProfilePasswordChange extends Component {
             </React.Fragment>
         );
     }
-}
+
 export default withRouter(ProfilePasswordChange);

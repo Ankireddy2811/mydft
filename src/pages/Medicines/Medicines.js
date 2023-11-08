@@ -1,3 +1,259 @@
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card, CardBody, Container } from "reactstrap";
+import { FaEdit, FaTrashAlt, FaEllipsisV } from 'react-icons/fa';
+import Breadcrumbs from '../../components/Common/Breadcrumb';
+import BootstrapTable from 'react-bootstrap-table-next';
+import paginationFactory from 'react-bootstrap-table2-paginator';
+import Swal from "sweetalert2";
+import { toast } from 'react-toastify'; // Import toast from react-toastify
+import axios from 'axios';
+import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
+import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css';
+import { CSVLink } from 'react-csv';
+import * as XLSX from 'xlsx';
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { drfDeleteMedicine ,drfGetMedicineDetails} from "../../drfServer";
+
+const Medicines = (props) => {
+    const [breadcrumbItems] = useState([
+        { title: "Tables", link: "#" },
+        { title: "Responsive Table", link: "#" },
+    ]);
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [medicinesPerPage] = useState(10);
+    const [exportData, setExportData] = useState([]);
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+    const [client_id, setClientId] = useState("");
+    const [access_token, setAccessToken] = useState("");
+    const [csvLink, setCsvLink] = useState(null);
+   
+
+    useEffect(() => {
+        const access = JSON.parse(localStorage.getItem('access_token'));
+        const id = JSON.parse(localStorage.getItem('client_id'));
+        if (access) {
+            setAccessToken(access);
+            setClientId(id);
+            getAllMedicines();
+        }
+    }, [client_id, access_token]);
+
+
+    const getAllMedicines = async () => {
+      
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${access_token}`,
+            }
+        };
+        try {
+           
+            const response = await drfGetMedicineDetails({ client_id }, headersPart);
+            if (response.status !== 200) {
+                throw new Error("Network response was not ok.");
+            }
+
+            const fetchedData = response.data;
+
+            setData(fetchedData);
+            setLoading(false);
+        } catch (error) {
+            setError('Error fetching data');
+            setLoading(false);
+        }
+    };
+
+    const handleEdit = (medicine_id) => {
+        props.history.replace(`/edit-medicine/${medicine_id}`);
+    };
+
+    const handleDeleteMedicine = async (medicine_id) => {
+        
+        const headersPart = {
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${access_token}`,
+            }
+          }
+      
+        try {
+          const result = await Swal.fire({
+            title: 'Delete Medicine',
+            text: "Are you sure you want to delete this medicine? You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, keep it',
+            reverseButtons: true,
+          });
+      
+          if (result.isConfirmed) {
+           
+            await drfDeleteMedicine({ medicine_id, client_id },headersPart);
+      
+            Swal.fire(
+              'Deleted!',
+              'The medicine has been deleted.',
+              'success'
+            );
+      
+            getAllMedicines();
+          }
+        } catch (error) {
+          console.error('Deletion failed:', error);
+          toast.error("Deletion failed");
+        }
+      };
+
+      const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+      };
+
+      const prepareExportData = () => {
+       
+        const exportData = data.map((medicine) => ({
+            'Medicine Id': medicine.medicine_id,
+            'Medicine Name': medicine.medicine_name,
+            'Manufacturer': medicine.manufacturer,
+            'Unit Price': medicine.unit_price,
+            'Stock Quantity': medicine.stock_quantity,
+            'Created At': medicine.created_at,
+            'Updated At': medicine.updated_at,
+        }));
+        return exportData;
+    };
+
+    const handleCSVExport = () => {
+        const exportData = prepareExportData();
+        setExportData(exportData);
+        csvLink.link.click();
+        
+    };
+
+    const handleExcelExport = () => {
+        const exportData = prepareExportData();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Medicines');
+        XLSX.writeFile(wb, 'medicines.xlsx');
+    };
+
+    const toggleExportDropdown = () => {
+        setExportDropdownOpen(!exportDropdownOpen);
+    };
+
+    const renderPagination = () => {
+        if(!data){
+            return null;
+        }
+        const totalPages = Math.ceil(data.length / medicinesPerPage);
+
+        if (totalPages <= 1) {
+            return null;
+        }
+
+        const paginationItems = [];
+        for (let i = 1; i <= totalPages; i++) {
+            paginationItems.push(
+                <li key={i} className={`page-item${currentPage === i ? ' active' : ''}`}>
+                    <a className="page-link" href="#" onClick={() => handlePageChange(i)}>
+                        {i}
+                    </a>
+                </li>
+            );
+        }
+
+        return (
+            <ul className="pagination justify-content-center">
+                {paginationItems}
+            </ul>
+        );
+    };
+
+    const indexOfLastMedicine = currentPage * medicinesPerPage;
+    const indexOfFirstMedicine = indexOfLastMedicine - medicinesPerPage;
+    const currentMedicines = data?.slice(indexOfFirstMedicine, indexOfLastMedicine)||[];
+
+    const columns = [
+        { dataField: 'medicine_id', text: 'Medicine ID', sort: true },
+        { dataField: 'medicine_name', text: 'Medicine Name' },
+        { dataField: 'manufacturer', text: 'Manufacturer', sort: true },
+        { dataField: 'unit_price', text: 'Unit Price' },
+        { dataField: 'stock_quantity', text: 'Stock Quantity' },
+        { dataField: 'created_at', text: 'Created At' },
+        { dataField: 'updated_at', text: 'Updated At' },
+        {
+            dataField: 'actions', text: 'Actions', formatter: (cell, row) => (
+                <>
+                    <FaEdit style={{ color: "purple" }} className="cursor-pointer mx-2" onClick={() => handleEdit(row.medicine_id)} />
+                    <FaTrashAlt style={{ color: "red" }} className="cursor-pointer mx-2" onClick={() => handleDeleteMedicine(row.medicine_id)} />
+                </>
+            )
+        },
+    ];
+      
+
+
+    // Other functions remain the same
+
+    // Rendering
+  
+
+    return (
+        <React.Fragment>
+        <div className="page-content">
+            <Container fluid>
+                <Breadcrumbs title="MEDICINES LIST" breadcrumbItems={breadcrumbItems} />
+                <Row>
+                    <Col xs={12}>
+                        <Card>
+                            <CardBody>
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <Dropdown isOpen={exportDropdownOpen} toggle={toggleExportDropdown}>
+                                        <DropdownToggle caret>
+                                            Export
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem onClick={handleCSVExport}>Export as CSV</DropdownItem>
+                                            <DropdownItem onClick={handleExcelExport}>Export as Excel</DropdownItem>
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                </div>
+                                <div className="table-responsive"> 
+                                    <BootstrapTable
+                                        keyField="medicine_id"
+                                        data={currentMedicines}
+                                        columns={columns}
+                                        pagination={paginationFactory()}
+                                    />
+                                </div>
+                                {renderPagination()}
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        </div>
+        {csvLink && (
+                <CSVLink
+                    data={exportData}
+                    filename={"doctors.csv"}
+                    className="hidden"
+                    ref={(r) => setCsvLink(r)} // Set the ref with the setter function
+                    target="_blank"
+                />
+            )}
+    </React.Fragment>
+    );
+};
+
+export default Medicines;
+
+/*
 import React, { Component } from "react";
 import { Row, Col, Card, CardBody, Container } from "reactstrap";
 import { FaEdit, FaTrashAlt, FaEllipsisV } from 'react-icons/fa';
@@ -49,7 +305,7 @@ class Medicines extends Component {
        }
 
     handleEdit = (medicine_id) => {
-        this.props.history.push(`/edit-medicine/${medicine_id}`);
+        this.props.history.replace(`/edit-medicine/${medicine_id}`);
     };
 
     getAllMedicines = async () => {
@@ -187,11 +443,11 @@ class Medicines extends Component {
     render() {
         const { data, loading, error, currentPage, medicinesPerPage } = this.state;
 
-        if (data !== null){
+        /* if (data !== null){
             for (let j=0; j < data.length;j++){
                 data[j]["medicine_id"] = j+1;
             }
-        }
+        } 
 
 
         if (loading) {
@@ -207,7 +463,7 @@ class Medicines extends Component {
         const currentMedicines = data?.slice(indexOfFirstMedicine, indexOfLastMedicine);
 
         const columns = [
-            { dataField: 'medicine_id', text: 'SNO', sort: true },
+            { dataField: 'medicine_id', text: 'Medicine ID', sort: true },
             { dataField: 'medicine_name', text: 'Medicine Name' },
             { dataField: 'manufacturer', text: 'Manufacturer', sort: true },
             { dataField: 'unit_price', text: 'Unit Price' },
@@ -244,7 +500,7 @@ class Medicines extends Component {
                                                 </DropdownMenu>
                                             </Dropdown>
                                         </div>
-                                        <div className="table-responsive"> {/* Add this wrapper div */}
+                                        <div className="table-responsive"> 
                                             <BootstrapTable
                                                 keyField="medicine_id"
                                                 data={currentMedicines}
@@ -271,4 +527,5 @@ class Medicines extends Component {
     }
 }
 
-export default Medicines;
+export default Medicines; */
+

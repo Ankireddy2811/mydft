@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+/* import React, { Component } from "react";
 import { Row, Col, Card, CardBody, Container } from "reactstrap";
 import { FaEdit, FaTrashAlt, FaEllipsisV } from 'react-icons/fa';
 import Breadcrumbs from '../../components/Common/Breadcrumb';
@@ -217,12 +217,7 @@ class Payments extends Component {
     render() {
         const { data, loading, error, currentPage, paymentPerPage } = this.state;
 
-        if (data !== null){
-            for (let j=0; j < data.length;j++){
-                data[j]["payment_id"] = j+1;
-            }
-        }
-
+        
         if (loading) {
             return <div>Loading...</div>;
         }
@@ -236,7 +231,7 @@ class Payments extends Component {
         const currentPayments = data?.slice(indexOfFirstPayment, indexOfLastPayment);
 
         const columns = [
-            { dataField: 'payment_id', text: 'SNO', sort: true },
+            { dataField: 'payment_id', text: 'Payment ID', sort: true },
             { dataField: 'invoice_id', text: 'Invoice ID' },
             { dataField: 'payment_date', text: 'Payment Date' },
             { dataField: 'amount', text: 'Amount' },
@@ -272,7 +267,7 @@ class Payments extends Component {
                                                 </DropdownMenu>
                                             </Dropdown>
                                         </div>
-                                        <div className="table-responsive"> {/* Add this wrapper div */}
+                                        <div className="table-responsive"> 
                                             <BootstrapTable
                                                 keyField="payment_id"
                                                 data={currentPayments}
@@ -298,5 +293,265 @@ class Payments extends Component {
         );
     }
 }
+
+export default Payments; */
+
+
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card, CardBody, Container } from "reactstrap";
+import { FaEdit, FaTrashAlt, FaEllipsisV } from 'react-icons/fa';
+import Breadcrumbs from '../../components/Common/Breadcrumb';
+import BootstrapTable from 'react-bootstrap-table-next';
+import Swal from 'sweetalert2';
+
+import { toast } from 'react-toastify'; // Import toast from react-toastify
+// import axios from 'axios';
+import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
+import paginationFactory from 'react-bootstrap-table2-paginator';
+import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css';
+import { CSVLink } from 'react-csv';
+import * as XLSX from 'xlsx';
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { drfGetPaymentDetails,drfDeletePayment } from "../../drfServer";
+
+const Payments = (props) => {
+    const [breadcrumbItems] = useState([
+        { title: "Tables", link: "#" },
+        { title: "Responsive Table", link: "#" },
+    ]);
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [paymentPerPage] = useState(10);
+    const [exportData, setExportData] = useState([]);
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+    const [client_id, setClientId] = useState("");
+    const [access_token, setAccessToken] = useState("");
+    const [csvLink, setCsvLink] = useState(null);
+
+    useEffect(() => {
+        const access = JSON.parse(localStorage.getItem('access_token'));
+        const id = JSON.parse(localStorage.getItem('client_id'));
+
+        if (access && id) {
+            setAccessToken(access);
+            setClientId(id);
+            getAllPayments();
+        }
+    }, []);
+
+    const getAllPayments = async () => {
+        const headersPart = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${access_token}`
+            },
+        };
+
+        try {
+            
+            const response = await drfGetPaymentDetails({ client_id }, headersPart);
+
+            if (response.status !== 200) {
+                throw new Error("Network response was not ok.");
+            }
+
+            const data = response.data;
+            setData(data);
+            setLoading(false);
+        } catch (error) {
+            setError('Error fetching data');
+            setLoading(false);
+        }
+    };
+
+    const handleDeletePayment = async (payment_id) => {
+       
+      
+        try {
+          const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+            reverseButtons: true,
+          });
+      
+          if (result.isConfirmed) {
+            await deletePayment(payment_id, client_id, access_token);
+            Swal.fire(
+              'Deleted!',
+              'The payment has been deleted.',
+              'success'
+            );
+          }
+        } catch (error) {
+          console.error('Deletion failed:', error);
+          toast.error('Deletion failed');
+        }
+      };
+      
+      const deletePayment = async (payment_id, client_id, access_token) => {
+        
+        const formData = { payment_id, client_id }
+        const headersPart = { headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${access_token}`,
+          },}
+        try {
+         const response = await drfDeletePayment(formData,headersPart)
+      
+          if (response.ok) {
+            throw new Error("Deletion Success");
+          }
+      
+          await getAllPayments();
+        } catch (error) {
+          console.error('Deletion failed:', error);
+          throw error; // Optionally, rethrow the error to handle it in the calling function
+        }
+      };
+      
+    const handleEdit = (payment_id) => {
+        props.history.replace(`/edit-payment/${payment_id}`);
+    };
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    };
+
+    const prepareExportData = () => {
+        
+        const exportData = data.map((payment) => ({
+            'Payment ID': payment.payment_id,
+            'Invoice ID': payment.invoice_id,
+            'Payment Date': payment.payment_date,
+            'Amount': payment.amount,
+            'Created At': payment.created_at,
+            'Updated At': payment.updated_at,
+        }));
+        return exportData;
+    };
+
+    const handleCSVExport = () => {
+        const exportData = prepareExportData();
+        setExportData(exportData);
+        csvLink.link.click();
+        
+    };
+
+    const handleExcelExport = () => {
+        const exportData = prepareExportData();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+        XLSX.writeFile(wb, 'payments.xlsx');
+    };
+
+    const toggleExportDropdown = () => {
+        setExportDropdownOpen(!exportDropdownOpen);
+    };
+
+    const renderPagination = () => {
+       if (!data){
+        return null;
+       }
+        const totalPages = Math.ceil(data.length / paymentPerPage);
+
+        if (totalPages <= 1) {
+            return null;
+        }
+
+        const paginationItems = [];
+        for (let i = 1; i <= totalPages; i++) {
+            paginationItems.push(
+                <li key={i} className={`page-item${currentPage === i ? ' active' : ''}`}>
+                    <a className="page-link" href="#" onClick={() => handlePageChange(i)}>
+                        {i}
+                    </a>
+                </li>
+            );
+        }
+
+        return (
+            <ul className="pagination justify-content-center">
+                {paginationItems}
+            </ul>
+        );
+    };
+
+    const indexOfLastPayment = currentPage * paymentPerPage;
+    const indexOfFirstPayment = indexOfLastPayment - paymentPerPage;
+    const currentPayments = data?.slice(indexOfFirstPayment, indexOfLastPayment)||[];
+
+    const columns = [
+        { dataField: 'payment_id', text: 'Payment ID', sort: true },
+        { dataField: 'invoice_id', text: 'Invoice ID' },
+        { dataField: 'payment_date', text: 'Payment Date' },
+        { dataField: 'amount', text: 'Amount' },
+        { dataField: 'created_at', text: 'Created At' },
+        { dataField: 'updated_at', text: 'Updated At' },
+        {
+            dataField: 'actions', text: 'Actions', formatter: (cell, row) => (
+                <>
+                    <FaEdit style={{ color: "purple" }} className="cursor-pointer mx-2" onClick={() => handleEdit(row.payment_id)} />
+                    <FaTrashAlt style={{ color: "red" }} className="cursor-pointer mx-2" onClick={() => handleDeletePayment(row.payment_id)} />
+                </>
+            )
+        },
+    ];
+
+
+    // Other functions remain the same...
+
+    return (
+       
+          <React.Fragment>
+          <div className="page-content">
+              <Container fluid>
+                  <Breadcrumbs title="PAYMENTS LIST" breadcrumbItems={breadcrumbItems} />
+                  <Row>
+                      <Col xs={12}>
+                          <Card>
+                              <CardBody>
+                                  <div className="d-flex justify-content-between align-items-center mb-3">
+                                      <Dropdown isOpen={exportDropdownOpen} toggle={toggleExportDropdown}>
+                                          <DropdownToggle caret>
+                                              Export
+                                          </DropdownToggle>
+                                          <DropdownMenu>
+                                              <DropdownItem onClick={handleCSVExport}>Export as CSV</DropdownItem>
+                                              <DropdownItem onClick={handleExcelExport}>Export as Excel</DropdownItem>
+                                          </DropdownMenu>
+                                      </Dropdown>
+                                  </div>
+                                  <div className="table-responsive"> 
+                                      <BootstrapTable
+                                          keyField="payment_id"
+                                          data={currentPayments}
+                                          columns={columns}
+                                          pagination={paginationFactory()}
+                                      />
+                                  </div>
+                                  {renderPagination()}
+                              </CardBody>
+                          </Card>
+                      </Col>
+                  </Row>
+              </Container>
+          </div>
+          <CSVLink
+                data={exportData}
+                filename={"payments.csv"}
+                className="hidden"
+                ref={(r) => setCsvLink(r)}
+                target="_blank"
+            />
+      </React.Fragment>
+    );
+};
 
 export default Payments;

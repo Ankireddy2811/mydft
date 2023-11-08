@@ -257,14 +257,13 @@ export default withRouter(EditHospital); */
 
 
 import React, {useState,useEffect} from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
+import { Row, Col, Card, CardBody,Button, Label, Input, Container,Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
 import { withRouter } from 'react-router-dom';
 
 //Import Breadcrumb
-import Breadcrumbs from '../../components/Common/Breadcrumb';
+//import Breadcrumbs from '../../components/Common/Breadcrumb';
 import {drfUpdateHospital,drfGetHospitalListById} from "../../drfServer";
 
 const EditHospital = (props) => {
@@ -285,65 +284,54 @@ const EditHospital = (props) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                const { match } = props;
-                const id = match.params.client_id;
-                const access = JSON.parse(localStorage.getItem('access_token'));
+            
+            const id = JSON.parse(localStorage.getItem('client_id'));
+            const access = JSON.parse(localStorage.getItem('access_token'));
+
+            if (id){
+                setState(prevState=>({...prevState,client_id:id,access_token:access}))
                 const headersPart = {
                     headers:{
                         'Authorization':`Bearer ${access}`
                     }
                 };
 
-                if (access) {
-                    setState(prevState => ({ ...prevState, access_token: access, client_id: id }));
-                
-
+               try {
+               
                 const response = await drfGetHospitalListById(id,headersPart);
-  
-
                 if (!response.ok) {
                     throw new Error('Network response was not ok.');
                 }
 
-                const data = await response.json();
-
-                if (data.Data.length > 0) {
-                    const {
-                        hospital_name,
-                        owner_name,
-                        city,
-                        address,
-                        email,
-                        phone
-                    } = data.Data[0];
+                const hospitalData = await response.data;
 
                 setState(prevState => ({
                     ...prevState,
                     
-                    hospital_name,
-                    owner_name,
-                    city,
-                    address,
-                    email,
-                    phone
+                    hospital_name:hospitalData.Data.hospital_name,
+                    owner_name:hospitalData.Data.owner_name,
+                    city:hospitalData.Data.city,
+                    address:hospitalData.Data.address,
+                    email:hospitalData.Data.email,
+                    phone:hospitalData.Data.phone,
+                    hospital_id:hospitalData.Data.hospital_id
+
                 }));
-            }
-                else {
-                    console.log("Hospital not found");
-                  }
-                }
-                else {
-                    console.log("Client ID not found");
-                  }
-                } 
+            
+               
+            } 
              catch (error) {
-                console.log(error);
+                throw new Error(error);
             }
+        }
+        
+        else{
+            throw new Error("Client ID not found");
+        }
         };
 
         fetchData();
-    }, [props]);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -370,7 +358,7 @@ const EditHospital = (props) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const { owner_name, hospital_name, city, address, email, phone, client_id, password, name } = state;
+        const { owner_name, hospital_name, city, address, email, phone, password, name } = state;
         let formData;
 
         if (!password) {
@@ -413,14 +401,14 @@ const EditHospital = (props) => {
 
             if (response.data.message) {
                 // Assuming toast and redirect are available in props
-                props.toast.success(response.data.message);
+                toast.success(response.data.message);
                 props.history.push('/hospital-list');
             } else {
-                props.toast.error(response.data.message || 'An error occurred while processing your request.');
+                toast.error(response.data.message || 'An error occurred while processing your request.');
             }
         } catch (error) {
             console.error('Error:', error);
-            props.toast.error('An error occurred while processing your request.');
+            toast.error('An error occurred while processing your request.');
         }
     };
 

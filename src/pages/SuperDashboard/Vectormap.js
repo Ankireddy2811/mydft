@@ -1,13 +1,12 @@
-import React, { Component } from "react";
+import React from "react";
 import { VectorMap } from "react-jvectormap";
 import "./jquery-jvectormap.css";
 
-export class Vectormap extends Component {
-  render() {
-    return (
-      <div style={{ width: this.props.width, height: 250 }}>
+const Vectormap = (props)=>
+   (
+      <div style={{ width:props.width, height: 250 }}>
         <VectorMap
-          map={this.props.value}
+          map={props.value}
           backgroundColor="transparent"
           ref="map"
           containerStyle={{
@@ -16,7 +15,7 @@ export class Vectormap extends Component {
           }}
           regionStyle={{
             initial: {
-              fill: this.props.color,
+              fill:props.color,
               stroke: "#74788d",
               "stroke-width": 1,
               "stroke-opacity": 0.4
@@ -34,7 +33,6 @@ export class Vectormap extends Component {
         />
       </div>
     );
-  }
-}
+
 
 export default Vectormap;

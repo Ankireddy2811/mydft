@@ -44,7 +44,7 @@ class Header extends Component {
         this.state = {
             isSearch: false,
             isSocialPf: false,
-            //inputText:""
+            inputText:""
         };
         this.toggleMenu = this.toggleMenu.bind(this);
         this.toggleRightbar = this.toggleRightbar.bind(this);
@@ -92,7 +92,7 @@ class Header extends Component {
         }
     }
 
-    /* onEnterText = (event)=>{
+     onEnterText = (event)=>{
      this.setState({inputText:event.target.value});
      console.log(event.target.value)
      console.log(this.props);
@@ -105,9 +105,9 @@ class Header extends Component {
             this.props.history.replace(`/${inputText}`); 
             this.setState({inputText:""})
         }
-    } */
+    } 
 
-    // onKeyDown={this.handleKeyDown} onChange={this.onEnterText}
+   
 
     render() {
         console.log(this.props);
@@ -143,7 +143,7 @@ class Header extends Component {
 
                             <Form className="app-search d-none d-lg-block">
                                 <div className="position-relative">
-                                    <Input type="text" className="form-control" placeholder={this.props.t('Search')} />
+                                    <Input type="text" className="form-control" placeholder={this.props.t('Search')}  onKeyDown={this.handleKeyDown} onChange={this.onEnterText} autoComplete="off"/>
                                     <span className="ri-search-line"></span>
                                 </div>
                             </Form>

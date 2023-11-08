@@ -1,17 +1,12 @@
-import React, { Component } from "react";
-import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
-//import { toast } from 'react-toastify';
-
+import React, { useState,useEffect } from "react";
+import { Row, Col, Card, CardBody, Button, Label, Input, Container, Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
-import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
-// Import Breadcrumb
-import Breadcrumbs from '../../components/Common/Breadcrumb';
+//import Breadcrumbs from '../../components/Common/Breadcrumb';
 import {drfAddPrescriptionDetail} from "../../drfServer"
-class AddPrescriptionDetails extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+
+const AddPrescriptionDetails = ()=> {
+    const [formData,setFormData] = useState({
             prescription: 0,
             medicine: 0,
             dosage: "",
@@ -19,26 +14,23 @@ class AddPrescriptionDetails extends Component {
             client:"",
             access_token:"",
 
-        };
-    }
-    componentDidMount() {
-        // Load client_id from local storage and set it in the state
-        const access = JSON.parse(localStorage.getItem('access_token'));
-
-        const client_id = JSON.parse(localStorage.getItem('client_id'));
-        if (client_id) {
-          this.setState({ client: client_id });
-          this.setState({ access_token: access });
-
-        }
-      }
-    handleChange = (e) => {
-        this.setState({
-            [e.target.name]: e.target.value,
         });
-    };
+    
+    useEffect(() => {
+        const access = JSON.parse(localStorage.getItem('access_token'));
+        const client_id = JSON.parse(localStorage.getItem('client_id'));
+        
+        if (client_id) {
+            setFormData(prevState => ({ ...prevState, client: client_id, access_token: access }));
+            }
+    }, []);
 
-    handleSubmit = async (e) => {
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const { 
           prescription,
@@ -47,9 +39,9 @@ class AddPrescriptionDetails extends Component {
           frequency,
           client,
           access_token,
-        } = this.state;
+        } = formData;
 
-        const formData = {
+        const requestFormData = {
             prescription,
             medicine,
             dosage,
@@ -65,7 +57,7 @@ class AddPrescriptionDetails extends Component {
         }
       
         try {
-          const response = await drfAddPrescriptionDetail(formData,headersPart);
+          const response = await drfAddPrescriptionDetail(requestFormData,headersPart);
       
           const data = response.data;
       
@@ -86,7 +78,7 @@ class AddPrescriptionDetails extends Component {
       };
       
 
-    render() {
+    
         return (
             <React.Fragment>
                 <div className="page-content">
@@ -95,12 +87,12 @@ class AddPrescriptionDetails extends Component {
                             <Col lg={12}>
                                 <Card>
                                     <CardBody>
-                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={this.handleSubmit}>
+                                        <Form className="needs-validation" method="post" id="tooltipForm" onSubmit={handleSubmit}>
                                             <Row>
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Prescription ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" name="prescription" placeholder="Prescription" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip01" name="prescription" placeholder="Prescription" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -109,7 +101,7 @@ class AddPrescriptionDetails extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip01">Medicine ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip01" name="medicine" placeholder="Medicine ID" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip01" name="medicine" placeholder="Medicine ID" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -122,7 +114,7 @@ class AddPrescriptionDetails extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Dosage</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" name="dosage" placeholder="Dosage" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip02" name="dosage" placeholder="Dosage" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -132,7 +124,7 @@ class AddPrescriptionDetails extends Component {
                                                 <Col md="6">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip04">Frequency</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip04" name="frequency" placeholder="No. of time in words" onChange={this.handleChange} required/>
+                                                        <Input type="text" className="form-control" id="validationTooltip04" name="frequency" placeholder="No. of time in words" onChange={handleChange} required/>
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -156,6 +148,6 @@ class AddPrescriptionDetails extends Component {
             </React.Fragment>
         );
     }
-}
+
 
 export default AddPrescriptionDetails;
