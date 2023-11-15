@@ -1,7 +1,5 @@
 import React, { Component } from "react";
-
 import { connect } from "react-redux";
-
 import { Link } from "react-router-dom";
 
 // reactstrap
@@ -235,135 +233,16 @@ class Header extends Component {
     }
 }
 
-const mapStatetoProps = state => {
-    const { layoutType } = state.Layout;
-    return { layoutType };
+
+
+
+
+
+const mapStatetoProps = (state) => {
+  const { layoutType } = state.Layout;
+  return { layoutType };
 };
 
 export default connect(mapStatetoProps, { toggleRightSidebar })(withNamespaces()(Header));
 
-/*
-<Dropdown isOpen={this.state.isMegaMenu} toggle={() => this.setState({ isMegaMenu: !this.state.isMegaMenu })} className="dropdown-mega d-none d-lg-block ms-2">
-                                <DropdownToggle tag="button" type="button" className="btn header-item waves-effect">
-                                    {this.props.t('Mega Menu')}{" "}
-                                    <i className="mdi mdi-chevron-down"></i>
-                                </DropdownToggle>
-                                <DropdownMenu className="dropdown-megamenu">
-                                    <Row>
-                                        <Col sm={8}>
 
-                                            <Row>
-                                                <Col md={4}>
-                                                    <h5 className="font-size-14 mt-0">{this.props.t('UI Components')}</h5>
-                                                    <ul className="list-unstyled megamenu-list">
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Lightbox')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Range Slider')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Rating')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Forms')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Tables')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Charts')}</Link>
-                                                        </li>
-                                                    </ul>
-                                                </Col>
-
-                                                <Col md={4}>
-                                                    <h5 className="font-size-14 mt-0">{this.props.t('Applications')}</h5>
-                                                    <ul className="list-unstyled megamenu-list">
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Ecommerce')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Calendar')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Email')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Projects')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Tasks')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Contacts')}</Link>
-                                                        </li>
-                                                    </ul>
-                                                </Col>
-
-                                                <Col md={4}>
-                                                    <h5 className="font-size-14 mt-0">{this.props.t('Extra Pages')}</h5>
-                                                    <ul className="list-unstyled megamenu-list">
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Light Sidebar')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Compact Sidebar')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Horizontal layout')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Maintenance')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Coming Soon')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Timeline')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('FAQs')}</Link>
-                                                        </li>
-
-                                                    </ul>
-                                                </Col>
-                                            </Row>
-                                        </Col>
-                                        <Col sm={4}>
-                                            <Row>
-                                                <Col sm={6}>
-                                                    <h5 className="font-size-14 mt-0">{this.props.t('UI Components')}</h5>
-                                                    <ul className="list-unstyled megamenu-list">
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Lightbox')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Range Slider')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Rating')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Forms')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Tables')}</Link>
-                                                        </li>
-                                                        <li>
-                                                            <Link to="#">{this.props.t('Charts')}</Link>
-                                                        </li>
-                                                    </ul>
-                                                </Col>
-
-                                                <Col sm={5}>
-                                                    <div>
-                                                        <img src={megamenuImg} alt="" className="img-fluid mx-auto d-block" />
-                                                    </div>
-                                                </Col>
-                                            </Row>
-                                        </Col>
-                                    </Row>
-
-                                </DropdownMenu>
-                            </Dropdown> */

@@ -31,7 +31,7 @@ export const drfLogout = async (body) => {
 // Hospital/change-password/
 
 export const drfProfilePasswordChange = async (formData,headerPart) => {
-  return await axios.post(`${MAINURL}/Hospital/change-password/`,formData,headerPart);
+  return await axios.post(`${MAINURL}Hospital/change-password/`,formData,headerPart);
 };
 
   //add hospital 
@@ -42,9 +42,7 @@ export const drfRegister = async (body) => {
 
 
 
-export const drfGet = async (body) => {
-  return await axios.get(`${MAINURL}Hospital/list/`, body);
-};
+
 export const drfUpdate = async (body) => {
   return await axios.put(`${MAINURL}Hospital/update/`, body);
 };
@@ -55,8 +53,8 @@ export const drfDelete = async (id,headerPart) => {
 };
 
 
-export const drfFeedback = async (body) => {
-  return await axios.post(`${MAINURL}Feedback/add/`, body);
+export const drfFeedback = async (formData,headerPart) => {
+  return await axios.post(`${MAINURL}Feedback/add/`,formData,headerPart);
 };
 
 export const drfGetFeedback = async (body) => {
@@ -109,7 +107,7 @@ export const drfUpdateAppointment = async (formData,headersPart) => {
 // API for delete the Appointment 
 
 export const drfDeleteAppointment = async (formData,headersPart) => {
-  return await axios.put(`${MAINURL}Appointment/cancelled/`, formData,headersPart);
+  return await axios.post(`${MAINURL}Appointment/deleteBy/`, formData,headersPart);
 };
 // -----------------------------------------------END----------------------------------------------
 

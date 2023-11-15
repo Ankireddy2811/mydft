@@ -20,14 +20,13 @@ const Counter3 = ()=>{
     setState(prevState=>({...prevState,access_token:access}));
     const headersPart = {
        headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${access}`,
+        'Authorization': `Bearer ${access}`,
     }
   }
     try {
       const hospitalResponse = await drfGetHospitalDetails(headersPart);
-
-      if (hospitalResponse.ok) {
+      console.log(hospitalResponse)
+      if (hospitalResponse.status === 200) {
         const hospitalData = await hospitalResponse.data;
         setState(prevState=>({ ...prevState,hospitalList: hospitalData, isLoading: false })); // Update isLoading and hospitalList
       }

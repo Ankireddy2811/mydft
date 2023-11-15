@@ -18,13 +18,15 @@ const ForgetPasswordPage = (props) =>{
 
 useEffect(()=>{
   const access = JSON.parse(localStorage.getItem("access_token"))
+  console.log(access)
   setFormData(prevState=>({...prevState,access_token:access}))
-})
+},[]);
 
   
   const handleValidSubmit = async (e) => {
     e.preventDefault();
     const {email} = formData;
+    console.log(email)
 
     try {
       const response = await drfForgetPassword({ email });
@@ -33,6 +35,7 @@ useEffect(()=>{
         toast.success(response.data.message, {
           autoClose: 1000,
         });
+        props.history.replace("/login")
       } else {
         const data = response.data;
         if (data.error_message.password) {
@@ -55,7 +58,8 @@ useEffect(()=>{
   };
 
   const handleEmailChange = (e) => {
-    setFormData(prevState=>({...prevState,[e.target.name] :e.target.value}));
+    console.log(e.target.value);
+    setFormData(prevState=>({...prevState,email:e.target.value}));
   };
 
   return (
@@ -108,7 +112,7 @@ useEffect(()=>{
                             <i className="ri-mail-line auti-custom-input-icon"></i>
                             <Label htmlFor="useremail">Email</Label>
                             <AvField
-                              name="useremail"
+                              name="email"
                               value={formData.email}
                               onChange={handleEmailChange}
                               type="email"

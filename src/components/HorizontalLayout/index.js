@@ -26,8 +26,8 @@ class Layout extends Component {
   }
 
   /**
-  * Open/close right sidebar
-  */
+  * Open/close right sidebar */
+  
   toggleRightSidebar() {
     this.props.toggleRightSidebar();
   }
@@ -80,11 +80,12 @@ class Layout extends Component {
   }
 
   /**
-   * Opens the menu - mobile
-   */
+   * Opens the menu - mobile */
+   
   openMenu = e => {
     this.setState({ isMenuOpened: !this.state.isMenuOpened });
   };
+
   render() {
     return (
       <React.Fragment>
@@ -113,12 +114,14 @@ class Layout extends Component {
       </React.Fragment>
     );
   }
-}
+} 
 const mapStatetoProps = state => {
   return {
     ...state.Layout
   };
-};
+}; 
 export default connect(mapStatetoProps, {
   changeTopbarTheme,changeLayoutTheme, toggleRightSidebar, changeLayout, changeLayoutWidth
-})(withRouter(Layout));
+})(withRouter(Layout)); 
+
+

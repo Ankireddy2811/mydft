@@ -15,7 +15,7 @@ import NonAuthLayout from "./components/NonAuthLayout";
 import "./assets/scss/theme.scss";
 import 'react-toastify/dist/ReactToastify.css';
 
-function App(props) {
+const App = (props) =>{
   /**
    * Returns the layout
    */

@@ -132,15 +132,15 @@ const FeedBack = (props)=>{
     if (access) {
       setAccessToken(access);
       setClientId(id);
-      getFeedbacks();
+      getFeedbacks(access);
     }
-  }, [client_id]);
+  }, [client_id,access_token]);
 
-  const getFeedbacks = async () => {
+  const getFeedbacks = async (access_token) => {
     const headersPart = {
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${access_token}`,
+             'Authorization': `Bearer ${access_token}`,
         },
     }
     try {

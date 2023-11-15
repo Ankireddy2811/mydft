@@ -125,6 +125,7 @@ const ProfilePasswordChange =(props)=> {
                                                                 />
 
                                                             </div>
+                                                           
                                                             <div className="auth-form-group-custom mb-4">
                                                                 <i className="ri-lock-2-line auti-custom-input-icon"></i>
                                                                 <Label htmlFor="password">New Password</Label>

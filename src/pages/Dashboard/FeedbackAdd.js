@@ -36,7 +36,7 @@ const FeedbackPopup = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const data = {
+    const formData = {
       email,
       notes,
       client,
@@ -45,12 +45,12 @@ const FeedbackPopup = () => {
     const headersPart =  {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
     }
 
     try {
-      const response = await drfFeedback(data,headersPart);
+      const response = await drfFeedback(formData,headersPart);
 
       console.log(response);
 

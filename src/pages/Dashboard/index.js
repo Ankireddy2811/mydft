@@ -1,25 +1,17 @@
-
-
-
-
-
-
 import React, { useState } from "react";
 import { Container, Row, Col } from "reactstrap";
-import { toast } from 'react-toastify';
-//import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import FeedbackAdd from "./FeedbackAdd"
 import Counter1 from "./Counter1";
 import Counter2 from "./Counter2";
-import RevenueAnalytics from "./RevenueAnalytics";
-import SalesAnalytics from "./SalesAnalytics";
-import EarningReports from "./EarningReports";
-import Sources from "./Sources";
-import RecentlyActivity from "./RecentlyActivity";
-import RevenueByLocations from "./RevenueByLocations";
-import ChatBox from "./ChatBox"
+//import RevenueAnalytics from "./RevenueAnalytics";
+//import SalesAnalytics from "./SalesAnalytics";
+//import EarningReports from "./EarningReports";
+//import Sources from "./Sources";
+//import RecentlyActivity from "./RecentlyActivity";
+// import RevenueByLocations from "./RevenueByLocations";
+// import ChatBox from "./ChatBox"
 import Appointments from "./Appointments";
 
 const Dashboard = () => {

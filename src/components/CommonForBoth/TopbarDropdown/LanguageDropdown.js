@@ -1,10 +1,5 @@
-import React, { Component } from "react";
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem
-} from "reactstrap";
+import React, { useState } from 'react';
+import {Dropdown,DropdownToggle,DropdownMenu,DropdownItem} from 'reactstrap';
 
 //i18n
 import i18n from '../../../i18n';
@@ -18,83 +13,76 @@ import italy from "../../../assets/images/flags/italy.jpg";
 import russia from "../../../assets/images/flags/russia.jpg";
 import india from "../../../assets/images/flags/india.png";
 
-// const indianFlag = "https://pngfre.com/indian-flag-png/indian-flag-52/";
-class LanguageDropdown extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      menu: false,
-      lng: "India",
-      flag: india
-    };
-    this.toggle = this.toggle.bind(this);
-    this.changeLanguageAction.bind(this);
-  }
+const LanguageDropdown = ({ t }) => {
+  const [menu, setMenu] = useState(false);
+  const [lng, setLng] = useState("India");
+  const [flag, setFlag] = useState(india);
 
-  toggle() {
-    this.setState(prevState => ({
-      menu: !prevState.menu
-    }));
-  }
+  const toggle = () => {
+    setMenu(prevMenu => !prevMenu);
+  };
 
-  changeLanguageAction = (lng) => {
-
+  const changeLanguageAction = (lng) => {
     //set the selected language to i18n
     i18n.changeLanguage(lng);
 
-    if (lng === "sp")
-      this.setState({ lng: "Spanish", flag: spain });
-    else if (lng === "gr")
-      this.setState({ lng: "German", flag: germany });
-    else if (lng === "ind")
-      this.setState({ lng: "India", flag: india});
-    else if (lng === "rs")
-      this.setState({ lng: "Russian", flag: russia });
-    else if (lng === "it")
-      this.setState({ lng: "Italian", flag: italy });
-    else if (lng === "eng")
-      this.setState({ lng: "English", flag: usFlag });
+    if (lng === "sp") {
+      setLng("Spanish");
+      setFlag(spain);
+    } else if (lng === "gr") {
+      setLng("German");
+      setFlag(germany);
+    } else if (lng === "ind") {
+      setLng("India");
+      setFlag(india);
+    } else if (lng === "rs") {
+      setLng("Russian");
+      setFlag(russia);
+    } else if (lng === "it") {
+      setLng("Italian");
+      setFlag(italy);
+    } else if (lng === "eng") {
+      setLng("English");
+      setFlag(usFlag);
+    }
   }
 
-  render() {
+  return (
+    <React.Fragment>
+      <Dropdown isOpen={menu} toggle={toggle} className="d-none d-sm-inline-block">
+        <DropdownToggle tag="button" className="btn header-item waves-effect">
+          <img className="" src={flag} alt="Header Language" height="16" />
+        </DropdownToggle>
 
-    return (
-      <React.Fragment>
-        <Dropdown isOpen={this.state.menu} toggle={this.toggle} className="d-none d-sm-inline-block">
-          <DropdownToggle tag="button" className="btn header-item waves-effect">
-            <img className="" src={this.state.flag} alt="Header Language" height="16" />
-          </DropdownToggle>
+        <DropdownMenu className="dropdown-menu-end">
 
-          <DropdownMenu className="dropdown-menu-end">
+          <DropdownItem active={lng === "English" ? true : false} onClick={() => changeLanguageAction('eng')} className="notify-item">
+            <img src={usFlag} alt="user" className="me-1" height="12" /> <span className="align-middle">{t('English')}</span>
+          </DropdownItem>
 
-            <DropdownItem active={this.state.lng === "English" ? true : false} href="" onClick={() => this.changeLanguageAction('eng')} className="notify-item">
-              <img src={usFlag} alt="user" className="me-1" height="12" /> <span className="align-middle">English</span>
-            </DropdownItem>
+          <DropdownItem active={lng === "India" ? true : false} onClick={() => changeLanguageAction('ind')} className="notify-item">
+            <img src={india} alt="user" className="me-1" height="12" /> <span className="align-middle">{t('India')}</span>
+          </DropdownItem>
 
-            <DropdownItem active={this.state.lng === "India" ? true : false} href="" onClick={() => this.changeLanguageAction('ind')} className="notify-item">
-              <img src={india} alt="user" className="me-1" height="12" /> <span className="align-middle">India</span>
-            </DropdownItem>
+          <DropdownItem active={lng === "Spanish" ? true : false} onClick={() => changeLanguageAction('sp')} className="notify-item">
+            <img src={spain} alt="user" className="me-1" height="12" /> <span className="align-middle">{t('Spanish')}</span>
+          </DropdownItem>
 
-            <DropdownItem href="" active={this.state.lng === "Spanish" ? true : false} onClick={() => this.changeLanguageAction('sp')} className="notify-item">
-              <img src={spain} alt="user" className="me-1" height="12" /> <span className="align-middle">Spanish</span>
-            </DropdownItem>
+          <DropdownItem active={lng === "German" ? true : false} onClick={() => changeLanguageAction('gr')} className="notify-item">
+            <img src={germany} alt="user" className="me-1" height="12" /> <span className="align-middle">{t('German')}</span>
+          </DropdownItem>
 
-            <DropdownItem href="" active={this.state.lng === "German" ? true : false} onClick={() => this.changeLanguageAction('gr')} className=" notify-item">
-              <img src={germany} alt="user" className="me-1" height="12" /> <span className="align-middle">German</span>
-            </DropdownItem>
+          <DropdownItem active={lng === "Italian" ? true : false} onClick={() => changeLanguageAction('it')} className="notify-item">
+            <img src={italy} alt="user" className="me-1" height="12" /> <span className="align-middle">{t('Italian')}</span>
+          </DropdownItem>
 
-            <DropdownItem href="" active={this.state.lng === "Italian" ? true : false} onClick={() => this.changeLanguageAction('it')} className=" notify-item">
-              <img src={italy} alt="user" className="me-1" height="12" /> <span className="align-middle">Italian</span>
-            </DropdownItem>
-
-            <DropdownItem href="" active={this.state.lng === "Russian" ? true : false} onClick={() => this.changeLanguageAction('rs')} className=" notify-item">
-              <img src={russia} alt="user" className="me-1" height="12" /> <span className="align-middle">Russian</span>
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </React.Fragment>
-    );
-  }
-}
+          <DropdownItem active={lng === "Russian" ? true : false} onClick={() => changeLanguageAction('rs')} className="notify-item">
+            <img src={russia} alt="user" className="me-1" height="12" /> <span className="align-middle">{t('Russian')}</span>
+          </DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
+    </React.Fragment>
+  );
+};
 
 export default withNamespaces()(LanguageDropdown);

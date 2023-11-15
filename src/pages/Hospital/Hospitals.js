@@ -14,7 +14,7 @@ import * as XLSX from 'xlsx';
 import ReactTooltip from 'react-tooltip';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { withRouter } from 'react-router-dom';
-import { drfGetHospitalDetails,drfDeleteDoctor, drfDeleteHospital} from "../../drfServer";
+import { drfGetHospitalDetails,drfDeleteHospital} from "../../drfServer";
 
 const Hospitals = ({ history }) => {
     const [breadcrumbItems] = useState([
@@ -42,16 +42,16 @@ const Hospitals = ({ history }) => {
         const access = JSON.parse(localStorage.getItem('access_token'));
         if (access) {
             setAccessToken(access);
-            getAllHospitals();
+            getAllHospitals(access);
         }
     }, []);
 
-    const getAllHospitals = async () => {
-        const acces = access_token;
+    const getAllHospitals = async (access_token) => {
+        
 
         const options = {
             headers: {
-                'Authorization': `Bearer ${acces}`
+                'Authorization': `Bearer ${access_token}`
             }
         };
 

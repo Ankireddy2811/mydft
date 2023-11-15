@@ -324,15 +324,38 @@ const AddPatient = ({ history }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const { first_name,
+            last_name,
+            gender,
+            email,
+            contact_number,
+            address,
+            date_of_birth,
+            medical_history,
+            client,access_token} = formData
+        
+
         const headersPart = {
             headers: {
                 "Content-Type": "application/json",
-                'Authorization': `Bearer ${formData.access_token}`,
+                'Authorization': `Bearer ${access_token}`,
             }
         }
 
+        const requestFormData = {
+            first_name,
+            last_name,
+            gender,
+            email,
+            contact_number,
+            address,
+            date_of_birth,
+            medical_history,
+            client
+        }
+
         try {
-            const response = await drfAddPatient(formData, headersPart);
+            const response = await drfAddPatient(requestFormData, headersPart);
             const data = response.data;
 
             if (data.message && data.success) {

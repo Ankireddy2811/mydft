@@ -1,20 +1,9 @@
-import React, { Component } from "react";
-
+/* import React, { Component } from "react";
 import { connect } from "react-redux";
-import {
-    Row,
-    Col,
-    Form,
-    FormGroup,
-    InputGroup,
-    Input,
-    Button,
-    Dropdown,
-    DropdownToggle,
-    DropdownMenu,
-} from "reactstrap";
-
+import {Row, Col, Form, FormGroup, InputGroup, Input, Button, Dropdown, DropdownToggle, DropdownMenu} from "reactstrap";
 import { Link,withRouter } from "react-router-dom";
+import Autosuggest from 'react-autosuggest';
+
 
 // Import menuDropdown
 import LanguageDropdown from "../CommonForBoth/TopbarDropdown/LanguageDropdown";
@@ -44,22 +33,24 @@ class Header extends Component {
         this.state = {
             isSearch: false,
             isSocialPf: false,
-            inputText:""
+            inputText:"",
+            suggestions: ['doctors', 'appointments', 'bed-list','patients','department-list'],
+            
         };
         this.toggleMenu = this.toggleMenu.bind(this);
         this.toggleRightbar = this.toggleRightbar.bind(this);
         this.toggleFullscreen = this.toggleFullscreen.bind(this);
     }
-    /**
+    
      * Toggle sidebar
-     */
+     
     toggleMenu() {
         this.props.toggleMenuCallback();
     }
 
     /**
      * Toggles the sidebar
-     */
+     
     toggleRightbar() {
         this.props.toggleRightSidebar();
     }
@@ -68,7 +59,7 @@ class Header extends Component {
     toggleFullscreen() {
         if (
             !document.fullscreenElement &&
-      /* alternative standard method */ !document.mozFullScreenElement &&
+       alternative standard method !document.mozFullScreenElement &&
             !document.webkitFullscreenElement
         ) {
             // current working methods
@@ -96,6 +87,7 @@ class Header extends Component {
      this.setState({inputText:event.target.value});
      console.log(event.target.value)
      console.log(this.props);
+     
     }
 
     handleKeyDown = (event)=>{
@@ -107,10 +99,14 @@ class Header extends Component {
         }
     } 
 
+    
+
    
 
     render() {
+       
         console.log(this.props);
+      
         return (
             <React.Fragment>
                 <header id="page-topbar">
@@ -143,12 +139,23 @@ class Header extends Component {
 
                             <Form className="app-search d-none d-lg-block">
                                 <div className="position-relative">
-                                    <Input type="text" className="form-control" placeholder={this.props.t('Search')}  onKeyDown={this.handleKeyDown} onChange={this.onEnterText} autoComplete="off"/>
+                                    <Input type="text"  list="suggestionsList" className="form-control" placeholder={this.props.t('Search')}  onKeyDown={this.handleKeyDown} onChange={this.onEnterText}/>
+                                 
                                     <span className="ri-search-line"></span>
+                                <datalist id="suggestionsList">
+                                {this.state.suggestions
+                                    .filter(suggestion =>
+                                    suggestion.toLowerCase().includes(this.state.inputText.toLowerCase())
+                                    )
+                                    .map((suggestion, index) => (
+                                    <option key={index} value={suggestion} />
+                                    ))}
+                               </datalist>
                                 </div>
                             </Form>
+                            
 
-                            {/* <MegaMenu /> */}
+                            {/* <MegaMenu /> 
                         </div>
 
                         <div className="d-flex">
@@ -171,11 +178,7 @@ class Header extends Component {
                                     </Form>
                                 </div>
                             </div>
-
-
-                           
-
-                            <div className="dropdown d-none d-lg-inline-block ms-1">
+                           <div className="dropdown d-none d-lg-inline-block ms-1">
                                 <Button color="none" type="button" className="header-item noti-icon waves-effect" onClick={this.toggleFullscreen}>
                                     <i className="ri-fullscreen-line"></i>
                                 </Button>
@@ -196,11 +199,219 @@ class Header extends Component {
             </React.Fragment>
         );
     }
-}
+} */
 
-const mapStatetoProps = state => {
-    const { layoutType } = state.Layout;
-    return { layoutType };
+
+
+import React, { useState } from "react";
+import { connect } from "react-redux";
+import {  Form, FormGroup, InputGroup, Input, Button } from "reactstrap";
+import { Link, withRouter } from "react-router-dom";
+//import Autosuggest from "react-autosuggest";
+
+// Import menuDropdown
+//import LanguageDropdown from "../CommonForBoth/TopbarDropdown/LanguageDropdown";
+import NotificationDropdown from "../CommonForBoth/TopbarDropdown/NotificationDropdown";
+import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu";
+
+//Import i18n
+import { withNamespaces } from "react-i18next";
+
+//Import Megamenu
+//import MegaMenu from "./MegaMenu";
+
+// Redux Store
+import { toggleRightSidebar } from "../../store/actions";
+
+//Import logo Images
+import logosmdark from "../../assets/images/logo-sm-dark.png";
+import logodark from "../../assets/images/logo-dark.png";
+import logosmlight from "../../assets/images/logo-sm-light.png";
+import logolight from "../../assets/images/logo-light.png";
+
+const Header = ({ toggleMenuCallback, toggleRightSidebar, layoutType, t, history }) => {
+  const [isSearch, setIsSearch] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const suggestions = ['doctors', 'appointments', 'bed-list', 'patients', 'department-list'];
+
+  const toggleMenu = () => {
+    toggleMenuCallback();
+  };
+
+  const toggleRightbar = () => {
+    toggleRightSidebar();
+  };
+
+  const toggleFullscreen = () => {
+    const docEl = document.documentElement;
+
+    if (
+      !document.fullscreenElement &&
+      !docEl.mozFullScreenElement &&
+      !docEl.webkitFullscreenElement
+    ) {
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen();
+      } else if (docEl.mozRequestFullScreen) {
+        docEl.mozRequestFullScreen();
+      } else if (docEl.webkitRequestFullscreen) {
+        docEl.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (docEl.mozCancelFullScreen) {
+        docEl.mozCancelFullScreen();
+      } else if (docEl.webkitExitFullscreen) {
+        docEl.webkitExitFullscreen();
+      }
+    }
+  };
+
+  const onEnterText = (event) => {
+    setInputText(event.target.value);
+    console.log(event.target.value);
+    console.log(history);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      history.replace(`/${inputText}`);
+      setInputText("");
+    }
+  };
+
+  return (
+    <React.Fragment>
+      <header id="page-topbar">
+        <div className="navbar-header">
+          <div className="d-flex">
+            <div className="navbar-brand-box">
+              <Link to="#" className="logo logo-dark">
+                <span className="logo-sm">
+                  <img src={logosmdark} alt="" height="22" />
+                </span>
+                <span className="logo-lg">
+                  <img src={logodark} alt="" height="20" />
+                </span>
+              </Link>
+
+              <Link to="#" className="logo logo-light">
+                <span className="logo-sm">
+                  <img src={logosmlight} alt="" height="22" />
+                </span>
+                <span className="logo-lg">
+                  <img src={logolight} alt="" height="30" width="150" />
+                </span>
+              </Link>
+            </div>
+
+            <Button
+              size="sm"
+              color="none"
+              type="button"
+              onClick={toggleMenu}
+              className="px-3 font-size-24 header-item waves-effect"
+              id="vertical-menu-btn"
+            >
+              <i className="ri-menu-2-line align-middle"></i>
+            </Button>
+
+            <Form className="app-search d-none d-lg-block">
+              <div className="position-relative">
+                <Input
+                  type="text"
+                  list="suggestionsList"
+                  className="form-control"
+                  placeholder={t("Search")}
+                  onKeyDown={handleKeyDown}
+                  onChange={onEnterText}
+                />
+                <span className="ri-search-line"></span>
+                <datalist id="suggestionsList">
+                  {suggestions
+                    .filter((suggestion) =>
+                      suggestion.toLowerCase().includes(inputText.toLowerCase())
+                    )
+                    .map((suggestion, index) => (
+                      <option key={index} value={suggestion} />
+                    ))}
+                </datalist>
+              </div>
+            </Form>
+          </div>
+
+          <div className="d-flex">
+            <div className="dropdown d-inline-block d-lg-none ms-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSearch(!isSearch);
+                }}
+                className="btn header-item noti-icon waves-effect"
+                id="page-header-search-dropdown"
+              >
+                <i className="ri-search-line"></i>
+              </button>
+              <div
+                className={
+                  isSearch === true
+                    ? "dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 show"
+                    : "dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
+                }
+                aria-labelledby="page-header-search-dropdown"
+              >
+                <Form className="p-3">
+                  <FormGroup className="m-0">
+                    <InputGroup>
+                      <Input type="text" className="form-control" placeholder={t("Search")} />
+                      <div className="input-group-append">
+                        <Button color="primary" type="submit">
+                          <i className="ri-search-line"></i>
+                        </Button>
+                      </div>
+                    </InputGroup>
+                  </FormGroup>
+                </Form>
+              </div>
+            </div>
+            <div className="dropdown d-none d-lg-inline-block ms-1">
+              <Button
+                color="none"
+                type="button"
+                className="header-item noti-icon waves-effect"
+                onClick={toggleFullscreen}
+              >
+                <i className="ri-fullscreen-line"></i>
+              </Button>
+            </div>
+
+            <NotificationDropdown />
+
+            <ProfileMenu />
+
+            <div className="dropdown d-inline-block">
+              <Button
+                color="none"
+                onClick={toggleRightbar}
+                type="button"
+                className="header-item noti-icon right-bar-toggle waves-effect"
+              >
+                <i className="ri-settings-2-line"></i>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+    </React.Fragment>
+  );
+};
+
+const mapStatetoProps = (state) => {
+  const { layoutType } = state.Layout;
+  return { layoutType };
 };
 
 export default connect(mapStatetoProps, { toggleRightSidebar })(withNamespaces()(withRouter(Header)));
+
+

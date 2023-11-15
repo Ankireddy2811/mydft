@@ -148,10 +148,10 @@ const Departments = () =>{
         
         try {
             const response = await drfAddDepartment(requestFormData,headersPart);
-
-            if (response.status === 200){
+    
+            if (response.status === 201){
                 toast.success("The department has been added.");
-                await getDepartments(); // Refresh the table data
+                await getDepartments(client_id,access_token); // Refresh the table data
                 setShowAddForm(false);
                 setDepartmentName("")
             }
@@ -165,32 +165,6 @@ const Departments = () =>{
     };
 
     const handleDeleteDepartment = async (id) => {
-       
-      
-        try {
-          const result = await Swal.fire({
-            title: 'Delete Department',
-            text: "Are you sure you want to delete this department? You won't be able to revert this action!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'No, cancel',
-            reverseButtons: true,
-          });
-      
-          if (result.isConfirmed) {
-            await deleteDepartment(id, client_id, access_token);
-            Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
-            
-          }
-            
-        } catch (error) {
-          console.error('Deletion failed:', error);
-          Swal.fire('Error', 'Deletion failed', 'error');
-        }
-      };
-
-      const deleteDepartment = async (id, client_id, access_token) => {
         const requestFormData = {
             department_id:id,
             client_id
@@ -204,20 +178,33 @@ const Departments = () =>{
           }
         }
 
-        try{
+      
+        try {
+          const result = await Swal.fire({
+            title: 'Delete Department',
+            text: "Are you sure you want to delete this department? You won't be able to revert this action!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel',
+            reverseButtons: true,
+          });
+      
+          if (result.isConfirmed) {
             const response = await drfDeleteDepartment(requestFormData,headersPart);
-            console.log(response)
-            await getDepartments();
-            Swal.fire('Deleted!', 'The department has been deleted.', 'success');
-           
+            if (response.status === 204){
+                Swal.fire('Cancelled!','The Department has been cancelled.','success');
+                await getDepartments(client_id,access_token);
+            }
         }
-        catch(error){
-            toast.error(error);
+            
+        } catch (error) {
+          console.error('Deletion failed:', error);
+          Swal.fire('Error', 'Deletion failed', 'error');
         }
-       
-        
       };
-    
+
+     
 
     const handlePageChange = (newPage) => {
         setCurrentPage(newPage);

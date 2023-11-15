@@ -1,4 +1,4 @@
-/* import React, { Component } from "react";
+import React, { Component } from "react";
 import { Row, Col, Card, CardBody, FormGroup, Button, Label, Input, Container, InputGroup, Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
 import axios from 'axios';
@@ -253,10 +253,10 @@ class EditHospital extends Component {
     }
 } 
 
-export default withRouter(EditHospital); */
+export default withRouter(EditHospital);
 
 
-import React, {useState,useEffect} from "react";
+/* import React, {useState,useEffect} from "react";
 import { Row, Col, Card, CardBody,Button, Label, Input, Container,Form } from "reactstrap";
 import { toast } from 'react-toastify'; // Import toast from react-toastify
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS file for styling
@@ -299,7 +299,7 @@ const EditHospital = (props) => {
                try {
                
                 const response = await drfGetHospitalListById(id,headersPart);
-                if (!response.ok) {
+                if (!response.status === 200) {
                     throw new Error('Network response was not ok.');
                 }
 
@@ -465,7 +465,7 @@ const EditHospital = (props) => {
                                                 <Col md="4">
                                                     <div className="mb-3 position-relative">
                                                         <Label className="form-label" htmlFor="validationTooltip02">Email ID</Label>
-                                                        <Input type="text" className="form-control" id="validationTooltip02" value={email} name="email" placeholder="Email ID" onChange={this.handleChange} />
+                                                        <Input type="text" className="form-control" id="validationTooltip02" value={email} name="email" placeholder="Email ID" onChange={handleChange} />
                                                         <div className="valid-tooltip">
                                                             Looks good!
                                                         </div>
@@ -540,7 +540,7 @@ const EditHospital = (props) => {
     );
 };
 
-export default withRouter(EditHospital); 
+export default withRouter(EditHospital); */
 
 
 

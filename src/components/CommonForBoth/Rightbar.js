@@ -312,16 +312,7 @@ class RightSidebar extends Component {
                   </div>
 
                 </FormGroup>
-
-
-                
-
-                
-
-                
-
-                
-              </div>
+             </div>
             </div>
           </SimpleBar>
         </div>
@@ -345,3 +336,5 @@ export default connect(mapStatetoProps, {
   changeLayoutTheme,
   changePreloader
 })(RightSidebar);
+
+
